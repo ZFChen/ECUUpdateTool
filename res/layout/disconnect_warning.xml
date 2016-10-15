@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <TextView 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="注意：蓝牙连接断开了，需要回到主界面重新连接蓝牙设备。请确保手机与蓝牙设备的距离不超过10米且蓝牙设备供电正常！"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        />
+    <Button 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="确定"
+        android:id="@+id/disconnect_ok"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        />
+
+</LinearLayout>
