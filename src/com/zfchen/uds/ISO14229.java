@@ -86,7 +86,9 @@ public class ISO14229 {
 			//对于：请求下载、传输数据、校验数据、擦除逻辑块， 这几个服务需要带额外的参数
 			this.addParameter(step, manufac, filePath, message);
 		} else if(step == UpdateStep.TransferData){
-			this.transferFile(0x514, this.data, this.socket, request_can_id);
+			//this.data.addAll(0, message);
+			//message.addAll(this.data);
+			this.transferFile(514, this.data, this.socket, request_can_id);
 			return positiveCode;
 		}
 		
@@ -344,13 +346,15 @@ public class ISO14229 {
 		SendThread sendThread = iso15765.new SendThread(socket, null);
 		ArrayList<Byte> blockFrame = new ArrayList<Byte>();
 		blockFrame.ensureCapacity(maxBlockLength);
-		int dataLength = transferData.size()-2;	//减去前两个字节：SID和sn
-		byte SID = transferData.get(0);
-		byte blockNumInitial = transferData.get(1);	//块号的初始值
+		int dataLength = transferData.size();	//原始数据长度
+		//byte SID = transferData.get(0);
+		//byte blockNumInitial = transferData.get(1);	//块号的初始值
+		byte SID = 0x36; //添加两个字节：SID和sn
+		byte blockNumInitial = 1;
 		int blockNum = dataLength/(maxBlockLength-2);  //最大块长度-2是因为每个块的前两个字节分别为：SID和sn（请求服务ID和块序号），后面的才是原始数据。
 		
 		for (int i = 0; i < blockNum; i++) {
-			//blockFrame.clear();
+			blockFrame.clear();
 			blockFrame.add(SID);	//添加诊断服务ID
 			blockFrame.add(blockNumInitial++); //添加块号（块号循环:第一次是从1开始计数，自增到FF后，再从0开始循环计数，这里采用byte类型，溢出后自动变为0）
 			
@@ -359,8 +363,19 @@ public class ISO14229 {
 				//iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, can_id);
 				//发送块数据
 				//sendThread = iso15765.new SendThread(socket, blockFrame);
-				iso15765.setSendData(blockFrame);
-				sendThread.start();
+			}
+			/*
+			iso15765.setSendData(blockFrame);
+			sendThread.start();
+			*/
+			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
+			int num = iso15765.frameBuffer.getFrame().size();
+			for(int k=0; k<num; k++){
+				for(int m=0; m<12; m++){
+					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
+					System.out.printf("%2h ", a);
+				}
+				System.out.println();
 			}
 		}
 		
@@ -374,8 +389,21 @@ public class ISO14229 {
 				//iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, can_id);
 				//发送块数据
 				//sendThread = iso15765.new SendThread(socket, blockFrame);
+				
+				/*
 				iso15765.setSendData(blockFrame);
 				sendThread.start();
+				*/
+			}
+			
+			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
+			int num = iso15765.frameBuffer.getFrame().size();
+			for(int k=0; k<num; k++){
+				for(int m=0; m<12; m++){
+					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
+					System.out.printf("%2h ", a);
+				}
+				System.out.println();
 			}
 		}
 	}
