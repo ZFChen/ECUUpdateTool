@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -50,7 +51,8 @@ public class OpenFileDialog {
 	static class FileSelectView extends ListView implements OnItemClickListener{
 		
 		private CallbackBundle callback = null;
-		private String path = sRoot;
+		//private String path = sRoot;
+		private String path = Environment.getExternalStorageDirectory().getPath()+"//XML版的诊断仪SD卡文件//";
 		private List<Map<String, Object>> list = null;
 		private int dialogid = 0;
 		private String suffix = null;
@@ -178,7 +180,7 @@ public class OpenFileDialog {
 					path = ppt;
 				}
 				else{
-					// 返回更目录
+					// 返回根目录
 					path = sRoot;
 				}
 			}

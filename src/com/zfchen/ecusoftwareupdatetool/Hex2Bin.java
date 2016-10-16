@@ -177,13 +177,18 @@ public class Hex2Bin {
 			FileReader fr = new FileReader(filename);
 			BufferedReader br = new BufferedReader(fr);
 			
+			highest_address = 0;
+			lowest_address = Long.MAX_VALUE;
+			seg_lin_select = NO_ADDRESS_TYPE_SELECTED;
+			result.clear();
+			
 			while ((buffer = br.readLine()) != null)//采用循环方式来一行一行的读取
 			{
-				hex = buffer.substring(1).getBytes();
+				hex = buffer.substring(1).getBytes();//取得冒号(:)后面的数据
 
-				this.ASC_II2Hexadecimal(hex , al);
-				
+				al = this.ASC_II2Hexadecimal(hex);		
 				data_bytes = al.get(length_index);
+				
 				type = al.get(type_index);
 				checksum = al.get(al.size()-1);	//最后一位是校验和
 				first_word = ((al.get(address_MSB_index)<<8)|al.get(address_LSB_index))&0xFFFF;	//第1、2位是地址
@@ -201,7 +206,7 @@ public class Hex2Bin {
 					System.out.println("The checksum of hex file exist error!");
 				
 				this.parseHex(RecordType.values()[type]);
-				al.clear();
+				//al.clear();
 			}
 			
 			max_length = (int)(highest_address - lowest_address+1);
@@ -215,21 +220,22 @@ public class Hex2Bin {
 		return max_length;
 	}
 	
-	private void ASC_II2Hexadecimal(byte data[], ArrayList<Integer> list){
-		
-		for(int i=0; i< hex.length; i++){
-			if( hex[i]>='0' && hex[i]<='9'){
-				hex[i] = (byte)(hex[i]-'0');
-			} else if( hex[i]>='A' && hex[i]<='Z'){
-				hex[i] =(byte) (hex[i]-'0'-7);
+	private ArrayList<Integer> ASC_II2Hexadecimal(byte data[]){
+		ArrayList<Integer> list = new ArrayList<>();
+		for(int i=0; i< data.length; i++){
+			if( data[i]>='0' && data[i]<='9'){
+				data[i] = (byte)(data[i]-'0');
+			} else if( data[i]>='A' && data[i]<='Z'){
+				data[i] =(byte) (data[i]-'0'-7);
 			}
 		}
 		
 		/*由于java不存在无符号类型，对于byte类型而言此处计算的结果会出现负数（byte类型占8位，最高位会为1时会被当做负数处理）*/
 		/* 0xeb 打印时会出现 -21 , 实际上两者的二进制补码相同, 但是一个是无符号型, 一个是有符号型, 解释方式不同*/
-		for(int i=0; i< hex.length-1; i+=2){
-			list.add((Integer) ((hex[i]<<4)|hex[i+1]));
+		for(int i=0; i< data.length-1; i+=2){
+			list.add((Integer) ((data[i]<<4)|data[i+1]));
 		}
+		return list;
 	}
 	
 	public boolean Convert(String source_filename, String destination_filename)
@@ -268,9 +274,10 @@ public class Hex2Bin {
 	
 	public ArrayList<Byte> getHexFileData(String source_filename)
 	{
-		max_length = (int)(highest_address - lowest_address+1);
+		//max_length = (int)(highest_address - lowest_address+1);
 		ArrayList<Byte> file_content = new ArrayList<Byte>();	//Integer --> Byte
-		file_content.ensureCapacity(getFileSize(source_filename));
+		//file_content.ensureCapacity(getFileSize(source_filename));
+		file_content.ensureCapacity(max_length);
 		for(int i=0; i<max_length; i++){	// 首先用0xFF初始化buffer 
 			file_content.add((byte) 0xFF);
 		}
@@ -283,6 +290,7 @@ public class Hex2Bin {
 				file_content.set((int)(addr+i), al_temp.get(i).byteValue());
 			}
 		}
+		System.out.println("getHexFileData......");
 		return file_content;
 	}
 }	

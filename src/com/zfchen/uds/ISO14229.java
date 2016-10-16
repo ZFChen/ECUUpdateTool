@@ -31,7 +31,9 @@ public class ISO14229 {
 	ArrayList<Byte> data;
 	String manufacturer;
 	String[] filePath;
-	
+	String path;
+	byte[] fileSize;
+	byte[] startAddress;
 	public ISO14229(CANDatabaseHelper helper, BluetoothSocket bTsocket, String manufacturer){
 		super();
 		this.db = helper.getReadableDatabase();
@@ -59,7 +61,7 @@ public class ISO14229 {
 	 */
 	protected byte requestDiagService(UpdateStep step, String manufac, String filePath){	//ReadECUHardwareNumber
 		byte positiveCode = 0;	/* 返回该报文对应的积极响应码  */
-		SendThread sendThread;
+		
 		ArrayList<Byte> message = canDBHelper.getCANMessage(step);
 		/*
 		for (Byte b : al) {
@@ -69,8 +71,6 @@ public class ISO14229 {
 		positiveCode = message.get(message.size()-1);	//取出积极响应码
 		message.remove(message.size()-1);
 
-		//System.out.println(canDBHelper);
-		//System.out.println(db);
 		ArrayList<Integer> canIDList = canDBHelper.getCANID(db, manufac);
 		
 		if(step == UpdateStep.RequestToExtendSession || step == UpdateStep.RequestToDefaultSession
@@ -88,6 +88,7 @@ public class ISO14229 {
 		} else if(step == UpdateStep.TransferData){
 			//this.data.addAll(0, message);
 			//message.addAll(this.data);
+			System.out.println("the length of file transfered is " + this.data.size());
 			this.transferFile(514, this.data, this.socket, request_can_id);
 			return positiveCode;
 		}
@@ -96,7 +97,7 @@ public class ISO14229 {
 		//发送块数据
 		//sendThread = iso15765.new SendThread(socket, message);
 		//sendThread.start();
-		
+		/*
 		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		int num = iso15765.frameBuffer.getFrame().size();
 		for(int i=0; i<num; i++){
@@ -106,10 +107,11 @@ public class ISO14229 {
 			}
 			System.out.println();
 		}
+		*/
 		//iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
-		//SendThread sendThread = new SendThread(socket, iso15765.frameBuffer);
+		SendThread sendThread = iso15765.new SendThread(socket, message);
 		//发送块数据
-		//sendThread.start();
+		sendThread.start();
 		return positiveCode;
 	}
 	
@@ -194,68 +196,69 @@ public class ISO14229 {
 //			return result;
 //		
 //		//下载application或calibration data文件(重复数据下载过程)
-//		if(filePathList[1] != null){
-//			positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[1]);//application
+		if(filePathList[1] != null){
+			positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[1]);//application
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
 //			
-//			positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
+			positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
 //			
-//			positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
+			positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
 //			
-//			positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
+			positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
-//		}
-//		if(filePathList[2] != null){
-//			positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[2]);//calibration data
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-//			positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
+		}
+		
+		if(filePathList[2] != null){
+			positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[2]);//calibration data
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
 //			
-//			positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
+			positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
 //			
-//			positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
+			positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
 //			if(iso15765.getReceiveData().get(0) != positiveResponse)
 //				return result;
-//		}
+//			
+			positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
+//			if(iso15765.getReceiveData().get(0) != positiveResponse)
+//				return result;
+		}
 //		
-//		step.setProcessStep(UpdateStep.CheckProgrammDependency);
-//		positiveResponse = requestDiagService(UpdateStep.CheckProgrammDependency, manufacturer, null);
+		step.setProcessStep(UpdateStep.CheckProgrammDependency);
+		positiveResponse = requestDiagService(UpdateStep.CheckProgrammDependency, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
 //		
-//		step.setProcessStep(UpdateStep.ResetECU);
-//		positiveResponse = requestDiagService(UpdateStep.ResetECU, manufacturer, null);
+		step.setProcessStep(UpdateStep.ResetECU);
+		positiveResponse = requestDiagService(UpdateStep.ResetECU, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
 //		
-//		step.setProcessStep(UpdateStep.RequestToExtendSession);
-//		positiveResponse = requestDiagService(UpdateStep.RequestToExtendSession, manufacturer, null);
+		step.setProcessStep(UpdateStep.RequestToExtendSession);
+		positiveResponse = requestDiagService(UpdateStep.RequestToExtendSession, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
 //		
-//		step.setProcessStep(UpdateStep.EnableNonDiagComm);
-//		positiveResponse = requestDiagService(UpdateStep.EnableNonDiagComm, manufacturer, null);
+		step.setProcessStep(UpdateStep.EnableNonDiagComm);
+		positiveResponse = requestDiagService(UpdateStep.EnableNonDiagComm, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
 //		
-//		step.setProcessStep(UpdateStep.EnableDTCStorage);
-//		positiveResponse = requestDiagService(UpdateStep.EnableDTCStorage, manufacturer, null);
+		step.setProcessStep(UpdateStep.EnableDTCStorage);
+		positiveResponse = requestDiagService(UpdateStep.EnableDTCStorage, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
 //		
-//		step.setProcessStep(UpdateStep.RequestToDefaultSession);
-//		positiveResponse = requestDiagService(UpdateStep.RequestToDefaultSession, manufacturer, null);
+		step.setProcessStep(UpdateStep.RequestToDefaultSession);
+		positiveResponse = requestDiagService(UpdateStep.RequestToDefaultSession, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
 		
@@ -265,37 +268,49 @@ public class ISO14229 {
 	
 	protected void addParameter(UpdateStep step, String manufac, String filePath, ArrayList<Byte> frame){
 		//int dataLength = h2b.getFileSize(filePath);	//数据长度
-		h2b.getFileSize(filePath);
-		byte[] fileSize = h2b.getSize();
-		byte[] startAddress = h2b.getStarting_address();	//起始地址
-		this.data = h2b.getHexFileData(filePath); //hex文件的数据部分
 		
-		byte[] hex_data = new byte[data.size()];
-		for (int i = 0; i < hex_data.length; i++) {
-			hex_data[i] = data.get(i);
-		}
-		switch (manufac) {//校验码(不同厂商规定的校验方式不同)
-		case "zotye":
-			crc = new Crc(0x4c11db7, 32, false, false);
-			break;
+		byte[] check = null;
 		
-		case "dfsk":
-			crc = new Crc(0x4c11db7, 32, false, false); //DFSK的校验方式有待确定	
-			break;
-					
-		case "geely":
-			crc = new Crc(0x4c11db7, 32, true, true);
-			break;
-			
-		case "baic":
-			crc = new Crc(0x4c11db7, 32, false, false); //BAIC的校验方式有待确定	
-			break;	
-			
-		default:
-			System.out.println("The manufacturer isn't supported!");
-			break;
+		if((path != filePath) && (filePath!=null)){
+			h2b.getFileSize(filePath);
+			System.out.println(filePath);
+			fileSize = h2b.getSize();
+			System.out.println(fileSize);
+			startAddress = h2b.getStarting_address();	//起始地址
+			System.out.println(startAddress);
+			this.data = h2b.getHexFileData(filePath); //hex文件的数据部分
+			this.path = filePath;
 		}
-		byte[] check = crc.CRC32(hex_data, data.size());  //使用Crc校验方法，对转换后的数据流（bin文件）进行校验 
+		
+		if(step == UpdateStep.CheckSum){
+			byte[] hex_data = new byte[this.data.size()];
+			for (int i = 0; i < this.data.size(); i++) {
+				hex_data[i] = this.data.get(i);
+			}
+			switch (manufac) {//校验码(不同厂商规定的校验方式不同)
+			case "zotye":
+				crc = new Crc(0x4c11db7, 32, false, false);
+				break;
+			
+			case "dfsk":
+				crc = new Crc(0x4c11db7, 32, false, false); //DFSK的校验方式有待确定	
+				break;
+						
+			case "geely":
+				crc = new Crc(0x4c11db7, 32, true, true);
+				break;
+				
+			case "baic":
+				crc = new Crc(0x4c11db7, 32, false, false); //BAIC的校验方式有待确定	
+				break;	
+				
+			default:
+				System.out.println("The manufacturer isn't supported!");
+				break;
+			}
+			
+			check = crc.CRC32(hex_data, hex_data.length);  //使用Crc校验方法，对转换后的数据流（bin文件）进行校验 
+		}
 		
 		switch(step){//根据不同的诊断服务，加入对应的参数
 		case RequestDownload:
