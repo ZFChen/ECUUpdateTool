@@ -67,7 +67,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 	ISO15765 iso15765 = null;
 	ISO14229 iso14229 = null;
 	UpdateSoftwareProcess updateProcess = null;
-	
+	String[] filePath;
 	public class UpdateSoftwareProcess{
 		boolean UpdateSoftwareFunctionState;
 		UpdateStep ProcessStep;
@@ -249,7 +249,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 				// TODO Auto-generated method stub
 				if(driverInput.getText() != null)
 				{
-					String[] filePath = new String[3];
+					filePath = new String[3];
 					if(appInput.getText() != null || dataInput.getText() != null){
 						filePath[0] = driverInput.getText().toString();	//驱动文件路径
 						filePath[1] = appInput.getText().toString();	//应用文件路径
@@ -257,11 +257,15 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 						System.out.println("Update ECU software ...");
 						if(updateProcess.UpdateSoftwareFunctionState == false){
 							//升级选项设置完毕, 开始升级
+							SendThread sendThread = new SendThread(iso14229);
+							sendThread.start();
+							/*
 							iso14229.setFilePath(filePath);
 							boolean result = iso14229.update(manufacturer, filePath, updateProcess);
 							if(result){
 								Toast.makeText(getApplicationContext(), "升级完成", Toast.LENGTH_LONG).show();
 							}
+							*/
 						}else{
 							updateProcess.UpdateSoftwareFunctionState = true;
 							Toast.makeText(getApplicationContext(), "正在升级，请稍等", Toast.LENGTH_LONG).show();
@@ -307,7 +311,22 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 		return null;
 	}
 	
-	
+	protected class SendThread extends Thread{
+		ISO14229 iso14229;
+		
+		public SendThread(ISO14229 iso14229) {
+			super();
+			this.iso14229 = iso14229;
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			super.run();
+			iso14229.setFilePath(filePath);
+			iso14229.update(manufacturer, filePath, updateProcess);
+		}
+	}
 	
 	void SendMessageToHandler(Object obj){
     	Message msg = messageHandler.obtainMessage();

@@ -1,5 +1,8 @@
 package com.zfchen.uds;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 import android.bluetooth.BluetoothSocket;
@@ -97,7 +100,7 @@ public class ISO14229 {
 		//发送块数据
 		//sendThread = iso15765.new SendThread(socket, message);
 		//sendThread.start();
-		/*
+		
 		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		int num = iso15765.frameBuffer.getFrame().size();
 		for(int i=0; i<num; i++){
@@ -107,11 +110,11 @@ public class ISO14229 {
 			}
 			System.out.println();
 		}
-		*/
+		
 		//iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
-		SendThread sendThread = iso15765.new SendThread(socket, message);
+		//SendThread sendThread = iso15765.new SendThread(socket, message);
 		//发送块数据
-		sendThread.start();
+		//sendThread.start();
 		return positiveCode;
 	}
 	
@@ -267,8 +270,7 @@ public class ISO14229 {
 	}
 	
 	protected void addParameter(UpdateStep step, String manufac, String filePath, ArrayList<Byte> frame){
-		//int dataLength = h2b.getFileSize(filePath);	//数据长度
-		
+
 		byte[] check = null;
 		
 		if((path != filePath) && (filePath!=null)){
@@ -278,7 +280,7 @@ public class ISO14229 {
 			System.out.println(fileSize);
 			startAddress = h2b.getStarting_address();	//起始地址
 			System.out.println(startAddress);
-			this.data = h2b.getHexFileData(filePath); //hex文件的数据部分
+			this.data = h2b.getHexFileData(filePath);	//hex文件的数据部分
 			this.path = filePath;
 		}
 		
@@ -287,13 +289,13 @@ public class ISO14229 {
 			for (int i = 0; i < this.data.size(); i++) {
 				hex_data[i] = this.data.get(i);
 			}
-			switch (manufac) {//校验码(不同厂商规定的校验方式不同)
+			switch (manufac) {	//校验码(不同厂商规定的校验方式不同)
 			case "zotye":
 				crc = new Crc(0x4c11db7, 32, false, false);
 				break;
 			
 			case "dfsk":
-				crc = new Crc(0x4c11db7, 32, false, false); //DFSK的校验方式有待确定	
+				crc = new Crc(0x4c11db7, 32, false, false);	//DFSK的校验方式有待确定	
 				break;
 						
 			case "geely":
@@ -309,7 +311,7 @@ public class ISO14229 {
 				break;
 			}
 			
-			check = crc.CRC32(hex_data, hex_data.length);  //使用Crc校验方法，对转换后的数据流（bin文件）进行校验 
+			check = crc.CRC32(hex_data, hex_data.length);  //使用CRC校验方法，对转换后的数据流（bin文件）进行校验 
 		}
 		
 		switch(step){//根据不同的诊断服务，加入对应的参数
@@ -321,11 +323,6 @@ public class ISO14229 {
 				frame.add(b);
 			}
 				break;
-		/*		
-		case TransferData:
-			//除了添加下载数据外，还需要计算序号(初始序号从1开始，之后从0到F循环计数,每发送一个数据块需等待目标ECU的积极响应)
-			
-				break;*/
 				
 		case CheckSum:
 			for (byte b : check) {	//add CRC result
@@ -349,7 +346,7 @@ public class ISO14229 {
 	}
 	
 	
-	/**
+	/** 除了添加下载数据外，还需要计算序号(初始序号从1开始，之后从0到F循环计数,每发送一个数据块需等待目标ECU的积极响应)
 	 * @param maxBlockLength 最大的数据块长度
 	 * @param transferData 待传输的数据（其中前两个字节为36 01——SID和sn）
 	 * @param CANFrame 发送缓冲区（报文帧）
@@ -358,15 +355,14 @@ public class ISO14229 {
 	protected void transferFile(int maxBlockLength, ArrayList<Byte> transferData, BluetoothSocket socket, int can_id){
 		
 		//SendThread sendThread = iso15765.new SendThread(socket, transferData);
-		SendThread sendThread = iso15765.new SendThread(socket, null);
+		//SendThread sendThread = iso15765.new SendThread(socket, null);
 		ArrayList<Byte> blockFrame = new ArrayList<Byte>();
 		blockFrame.ensureCapacity(maxBlockLength);
 		int dataLength = transferData.size();	//原始数据长度
-		//byte SID = transferData.get(0);
-		//byte blockNumInitial = transferData.get(1);	//块号的初始值
-		byte SID = 0x36; //添加两个字节：SID和sn
+		
+		byte SID = 0x36; //添加两个字节：SID(数据传输的ID号)和sn(块号)
 		byte blockNumInitial = 1;
-		int blockNum = dataLength/(maxBlockLength-2);  //最大块长度-2是因为每个块的前两个字节分别为：SID和sn（请求服务ID和块序号），后面的才是原始数据。
+		int blockNum = dataLength/(maxBlockLength-2);  //最大块长度-2是因为每个块的前两个字节分别为：SID和sn（请求服务ID和块序号），后面的才是原始数据
 		
 		for (int i = 0; i < blockNum; i++) {
 			blockFrame.clear();
@@ -375,14 +371,17 @@ public class ISO14229 {
 			
 			for(int j=0; j<(maxBlockLength-2); j++){	//取出一个数据块的内容
 				blockFrame.add(transferData.get(j+(i*(maxBlockLength-2))));
-				//iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, can_id);
-				//发送块数据
-				//sendThread = iso15765.new SendThread(socket, blockFrame);
 			}
 			/*
 			iso15765.setSendData(blockFrame);
-			sendThread.start();
+			if(sendThread.getState() == Thread.State.NEW)
+				sendThread.start();
+			else if(sendThread.getState() == Thread.State.WAITING)
+				sendThread.notifyAll();
 			*/
+			
+			//发送块数据
+			//iso15765.new SendThread(socket, blockFrame).start();
 			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
 			int num = iso15765.frameBuffer.getFrame().size();
 			for(int k=0; k<num; k++){
@@ -401,16 +400,19 @@ public class ISO14229 {
 			blockFrame.add(blockNumInitial++);
 			for(int i=0; i<lastBlockLength; i++){
 				blockFrame.add(transferData.get(dataLength-lastBlockLength+i));
-				//iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, can_id);
-				//发送块数据
-				//sendThread = iso15765.new SendThread(socket, blockFrame);
-				
-				/*
-				iso15765.setSendData(blockFrame);
-				sendThread.start();
-				*/
 			}
 			
+			/*
+			iso15765.setSendData(blockFrame);
+			if(sendThread.getState() == Thread.State.NEW)
+				sendThread.start();
+			else if(sendThread.getState() == Thread.State.WAITING)
+				sendThread.notifyAll();
+			
+			sendThread.setFlag(false);
+			*/
+			
+			//iso15765.new SendThread(socket, blockFrame).start();
 			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
 			int num = iso15765.frameBuffer.getFrame().size();
 			for(int k=0; k<num; k++){
@@ -420,7 +422,89 @@ public class ISO14229 {
 				}
 				System.out.println();
 			}
+			
 		}
 	}
+	
+	
+	/*
+	public class SendThread extends Thread{
+		BluetoothSocket socket;
+		OutputStream outStream;
+		InputStream inStream;
+		ArrayList<Byte> receiveData;
+		ArrayList<Byte> sendData;
+		CANFrameBuffer buf;
+		boolean flag = true;
+		
+		String[] filePathList;
+		UpdateSoftwareProcess step;
+		
+		public SendThread(BluetoothSocket socket, ArrayList<Byte> output, String[] filePath) {
+			super();
+			// TODO Auto-generated constructor stub
+			this.socket = socket;
+			this.sendData = output;
+			this.filePathList = filePath;
+			
+			try{
+				this.outStream = socket.getOutputStream();
+				this.inStream  = socket.getInputStream();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+			
+		}
+
+		public void setFlag(boolean flag) {
+			this.flag = flag;
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			super.run();
+			while(flag == true){
+				buf = iso15765.new CANFrameBuffer();
+				iso15765.PackCANFrameData(sendData, buf, request_can_id);
+				
+				byte[] tempBuffer = new byte[12];
+				int num = buf.getFrame().size();
+				
+				try{
+					outStream.write(buf.getFrame().get(0).data);	// 发送第一帧/单帧
+					num += inStream.read(tempBuffer); //每次读取最多12个字节, 返回实际读取到的字节数 
+					if(num < 12)
+						id = (int)((tempBuffer[1]<<8)|tempBuffer[2]);
+					
+					if(num > 1){	//对于多帧传输,发送在第一帧之后需要等待接收流控制帧
+						//wait();
+						for(int i=1; i<=num-1; i++){
+							outStream.write(buf.getFrame().get(i).data);
+							sleep(1);	//sleep 1 ms
+						}
+					}
+	
+				}catch(IOException | InterruptedException e){
+					e.printStackTrace();
+				}
+
+				for(int j=0; j<num; j++){
+					for(int i=0; i<12; i++){
+						int a = (int)(buf.getFrame().get(j).data[i]&0xFF);
+						System.out.printf("%2h ", a);
+					}
+					System.out.println();
+				}
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	*/
 	
 }

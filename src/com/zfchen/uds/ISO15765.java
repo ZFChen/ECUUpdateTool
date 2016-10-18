@@ -17,9 +17,10 @@ public class ISO15765 {
 		FLOW_CONTROL_FRAME,
 		INVALID_FRAME};
 	
+	final int CAN_frame_message_length = 12;
 	/*-------CAN报文缓冲类定义--------*/
 	public class Item{	//每条数据长度为12个字节，格式为： 0xee(一个起始字节)+CAN ID（2个字节）+数据（8个字节）+校验和（一个字节）
-		public byte[] data = new byte[12];
+		public byte[] data = new byte[CAN_frame_message_length];
 	}
 	
 	public class CANFrameBuffer{
@@ -138,7 +139,7 @@ public class ISO15765 {
 			}else{  /*循环计数)*/
 				int index = 6;
 				byte snCount = 0x21;
-				for(int j = 1;j < 16;j++){ /*序号从1到F*/
+				for(int j=1; j<=0x0F; j++){ /*序号从1到F*/
 					for(int m = 0;m < 7;m++){
 						sendBuf.getFrame().get(j).data[m+4] = al.get(index++).byteValue();
 					}
@@ -146,7 +147,7 @@ public class ISO15765 {
 				}
 				/*序号递增至F后,从0开始循环计数*/
 				snCount = 0x20;
-				for(int j = 1;j <= sn-16;j++){	/*sn-16:剩下的帧数（前面循环一轮刚好16帧）*/
+				for(int j = 1;j <= sn-16;j++){	/*sn-16:剩下的帧数（前面循环一轮刚好16帧报文）*/
 					if(j != sn-16){
 						for(int m = 0;m < 7;m++){
 							sendBuf.getFrame().get(j+15).data[m+4] = al.get(index++).byteValue();
@@ -252,8 +253,8 @@ public class ISO15765 {
 		return receiveData;
 	}
 	
-	/*-----------接收到数据后根据帧类型进行处理-----------*/
 	
+	/*-----------接收到数据后根据帧类型进行处理-----------*/
 	/**
 	 * @param data 帧类型字节
 	 * @param receiveBuffer 接收报文缓冲区（存储一帧报文，12个字节）
@@ -284,16 +285,20 @@ public class ISO15765 {
 		
 		switch(frameType){
 			case SINGLE_FRAME:
-				for(int i = 0;i < 12;i++){
+				/*
+				for(int i = 0;i < CAN_frame_message_length;i++){
 					this.frameBuffer.getFrame().get(0).data[i] = receiveBuffer[i];
 				}
+				*/
 				length = receiveBuffer[3];
 				break;
 				
 			case FLOW_CONTROL_FRAME:
+				/*
 					for(int i = 0;i < 12;i++){
 						this.frameBuffer.getFrame().get(0).data[i] = receiveBuffer[i];
 					}
+					*/
 					break;
 					
 			case FIRST_FRAME:	/* 接收到第一帧,需要发送流控制帧 */
@@ -312,6 +317,7 @@ public class ISO15765 {
 		}
 		return length;
 	}
+	
 	
 	/*----------发送流控帧---------*/
 	public byte[] SendFlowControlFrame(int CANID){
@@ -363,20 +369,50 @@ public class ISO15765 {
 			// TODO Auto-generated method stub
 			super.run();
 			byte[] tempBuffer = new byte[12];
+			ArrayList<Byte> receiveBuffer = new ArrayList<Byte>();
 			int num = 0;
 			buf = new CANFrameBuffer();
 			int id = 0;
 			
-			while(id == response_can_id){
+			while(num < 12){
 				try{
-					num += inStream.read(tempBuffer); //每次读取最多12个字节, 返回实际读取到的字节数 
-					if(num < 12)
-						id = (int)((tempBuffer[1]<<8)|tempBuffer[2]);
+					num += inStream.read(tempBuffer); //每次读取最多12个字节(数组的长度), 返回实际读取到的字节数 
 				}catch(IOException e){
 					e.printStackTrace();
 				}
+				for(int i=0; i<num; i++)
+					receiveBuffer.add(tempBuffer[i]);
 			}
-			 
+			//考虑到接收的CAN报文数据可能会出现错位（帧头不在起始字节），这里对收到的数据进行重新排列 
+			for(int i=0; i<receiveBuffer.size(); i++){	//第一个字节为0xEE,后两个字节为CAN ID号，表明这是一帧报文的头
+				if((receiveBuffer.get(i)==0xEE) && ((int)((receiveBuffer.get(i+1)<<8)|receiveBuffer.get(i+2)) == response_can_id)){
+					if(i>0){	//如果0xEE不是第一个数据，则移除ArrayList中其之前的数据
+						for(int j=0; j<i; j++)
+							receiveBuffer.remove(j);
+					}	
+					break;
+				}
+			}
+			
+			//如果重新排列后接收到的数据不足12个字节（一帧报文）,则继续从流中读取数据
+			num = 0;
+			int remain_bytes = receiveBuffer.size() - 12;
+			while(remain_bytes < 0){
+				try{
+					num += inStream.read(tempBuffer); //每次读取最多12个字节(数组的长度), 返回实际读取到的字节数 
+					remain_bytes += num;
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+				for(int i=0; i<num; i++)
+					receiveBuffer.add(tempBuffer[i]);
+			}
+			
+			for(int i=0; i<12; i++){
+				tempBuffer[i] = receiveBuffer.get(0);
+				receiveBuffer.remove(0);
+			}
+			
 			int length = ReceiveNetworkFrameHandle(tempBuffer, request_can_id);
 			Item item = new Item();
 			item.data = tempBuffer.clone();
@@ -419,6 +455,7 @@ public class ISO15765 {
 		OutputStream outStream;
 		ArrayList<Byte> receiveData;
 		CANFrameBuffer buf;
+		boolean flag = true;
 		
 		public SendThread(BluetoothSocket socket, ArrayList<Byte> output) {
 			super();
@@ -434,6 +471,10 @@ public class ISO15765 {
 			*/
 		}
 
+		public void setFlag(boolean flag) {
+			this.flag = flag;
+		}
+
 		@Override
 		public synchronized void start() {
 			// TODO Auto-generated method stub
@@ -444,36 +485,57 @@ public class ISO15765 {
 		public void run() {
 			// TODO Auto-generated method stub
 			super.run();
-			
-			buf = new CANFrameBuffer();
-			PackCANFrameData(sendData, buf, request_can_id);
-			
-			//byte[] tempBuffer = new byte[12];
-			int num = buf.getFrame().size();
-			/*
-			try{
-				outStream.write(buf.getFrame().get(0).data);	// 发送第一帧/单帧
+			while(flag == true){
+				buf = new CANFrameBuffer();
+				PackCANFrameData(sendData, buf, request_can_id);
 				
-				ReceiveThread receiveThread = new ReceiveThread(socket);
-				receiveThread.start();
-				
-				if(num > 1){	//对于多帧传输,发送在第一帧之后需要等待接收流控制帧
+				//byte[] tempBuffer = new byte[12];
+				int num = buf.getFrame().size();
+				/*
+				try{
+					outStream.write(buf.getFrame().get(0).data);	// 发送第一帧/单帧
+					
+					ReceiveThread receiveThread = new ReceiveThread(socket);
+					receiveThread.start();
+					
+					if(num > 1){	//对于多帧传输,发送在第一帧之后需要等待接收流控制帧
+						wait();
+						for(int i=1; i<=num-1; i++)
+							outStream.write(buf.getFrame().get(i).data);
+					}
+	
+				}catch(IOException | InterruptedException e){
+					e.printStackTrace();
+				}
+				*/
+				for(int j=0; j<num; j++){
+					for(int i=0; i<12; i++){
+						int a = (int)(buf.getFrame().get(j).data[i]&0xFF);
+						System.out.printf("%2h ", a);
+					}
+					System.out.println();
+				}
+				/*
+				try {
 					wait();
-					for(int i=1; i<=num-1; i++)
-						outStream.write(buf.getFrame().get(i).data);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-
-			}catch(IOException | InterruptedException e){
-				e.printStackTrace();
-			}
-			*/
-			for(int j=0; j<num; j++){
-				for(int i=0; i<12; i++){
-					int a = (int)(buf.getFrame().get(j).data[i]&0xFF);
-					System.out.printf("%2h ", a);
-				}
-				System.out.println();
+				*/
 			}
 		}
 	}
+	
+	static void outputTest(CANFrameBuffer buf){
+		int num = buf.getFrame().size();
+		for(int j=0; j<num; j++){
+			for(int i=0; i<12; i++){
+				int a = (int)(buf.getFrame().get(j).data[i]&0xFF);
+				System.out.printf("%2h ", a);
+			}
+			System.out.println();
+		}
+	}
+	
 }
