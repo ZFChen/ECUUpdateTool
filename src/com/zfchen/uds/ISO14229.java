@@ -64,13 +64,14 @@ public class ISO14229 {
 	 */
 	protected byte requestDiagService(UpdateStep step, String manufac, String filePath){	//ReadECUHardwareNumber
 		byte positiveCode = 0;	/* 返回该报文对应的积极响应码  */
-		
+		OutputStream outStream = null;
 		ArrayList<Byte> message = canDBHelper.getCANMessage(step);
-		/*
-		for (Byte b : al) {
-			System.out.printf("%2h\n",b);
+		
+		try{
+			outStream = this.socket.getOutputStream();
+		}catch(IOException e){
+			e.printStackTrace();
 		}
-		*/
 		positiveCode = message.get(message.size()-1);	//取出积极响应码
 		message.remove(message.size()-1);
 
@@ -98,8 +99,7 @@ public class ISO14229 {
 		
 		this.iso15765 = new ISO15765(this.socket, request_can_id, response_can_id);
 		//发送块数据
-		//sendThread = iso15765.new SendThread(socket, message);
-		//sendThread.start();
+		//iso15765.new SendThread(socket, message).start();
 		
 		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		int num = iso15765.frameBuffer.getFrame().size();
@@ -109,19 +109,29 @@ public class ISO14229 {
 				System.out.printf("%2h ", a);
 			}
 			System.out.println();
+			
+			try {
+				outStream.write(iso15765.frameBuffer.getFrame().get(i).data);
+				Thread.sleep(1);
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		//iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
-		//SendThread sendThread = iso15765.new SendThread(socket, message);
+		//iso15765.new SendThread(socket, message).start();
 		//发送块数据
-		//sendThread.start();
 		return positiveCode;
 	}
 	
 	public boolean update(String manufac, String[] filePathList, UpdateSoftwareProcess step){
-		byte positiveResponse;
+		//byte positiveResponse;
 		boolean result = false;
 		
+		
+		
+/*		
 		step.setProcessStep(UpdateStep.ReadECUHardwareNumber);
 		positiveResponse = requestDiagService(UpdateStep.ReadECUHardwareNumber, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
@@ -264,7 +274,7 @@ public class ISO14229 {
 		positiveResponse = requestDiagService(UpdateStep.RequestToDefaultSession, manufacturer, null);
 //		if(iso15765.getReceiveData().get(0) != positiveResponse)
 //			return result;
-		
+*/		
 		result = true;
 		return result;
 	}
@@ -272,7 +282,6 @@ public class ISO14229 {
 	protected void addParameter(UpdateStep step, String manufac, String filePath, ArrayList<Byte> frame){
 
 		byte[] check = null;
-		
 		if((path != filePath) && (filePath!=null)){
 			h2b.getFileSize(filePath);
 			System.out.println(filePath);
@@ -353,8 +362,7 @@ public class ISO14229 {
 	 * @return
 	 */
 	protected void transferFile(int maxBlockLength, ArrayList<Byte> transferData, BluetoothSocket socket, int can_id){
-		
-		//SendThread sendThread = iso15765.new SendThread(socket, transferData);
+		OutputStream outStream = null;
 		//SendThread sendThread = iso15765.new SendThread(socket, null);
 		ArrayList<Byte> blockFrame = new ArrayList<Byte>();
 		blockFrame.ensureCapacity(maxBlockLength);
@@ -381,8 +389,12 @@ public class ISO14229 {
 			*/
 			
 			//发送块数据
-			//iso15765.new SendThread(socket, blockFrame).start();
 			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
+			try{
+				outStream = this.socket.getOutputStream();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
 			int num = iso15765.frameBuffer.getFrame().size();
 			for(int k=0; k<num; k++){
 				for(int m=0; m<12; m++){
@@ -390,6 +402,14 @@ public class ISO14229 {
 					System.out.printf("%2h ", a);
 				}
 				System.out.println();
+				
+				//将数据写入流中——发送数据
+				try {
+					outStream.write(iso15765.frameBuffer.getFrame().get(k).data);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -421,6 +441,14 @@ public class ISO14229 {
 					System.out.printf("%2h ", a);
 				}
 				System.out.println();
+				
+				//将数据写入流中——发送数据
+				try {
+					outStream.write(iso15765.frameBuffer.getFrame().get(k).data);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 		}
