@@ -43,11 +43,7 @@ public class ManufacturerActivity extends Activity {
         lt1=(ListView)findViewById(R.id.manufacturerList);
         lt1.setOnItemClickListener(listener);	//添加点击事件监听器
         lt1.setAdapter(simplead); 
-        /*
-		ContentHandlerCarManufacturer myCarManufacturerHandler = new ContentHandlerCarManufacturer();
-		XMLParseClass.XMLParse("车厂.txt", ManufacturerActivity.this, myCarManufacturerHandler);
-		listFileName = myCarManufacturerHandler.GetListContent(1);
-		*/
+        
         listFileName = new ArrayList<>();
         listFileName.add("zotye");
         listFileName.add("dfsk");
@@ -61,11 +57,6 @@ public class ManufacturerActivity extends Activity {
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			// TODO Auto-generated method stub
 			Intent intent = new Intent();
-			/*
-			System.out.println(name[position]);
-			System.out.println(listFileName.get(position));
-			intent.putExtra("filename", listFileName.get(position));  //position:The position of the view(to be clicked) in the adapter.
-			*/
 			intent.putExtra("manufacturer", listFileName.get(position));
 			intent.setClass(ManufacturerActivity.this, UpdateActivity.class);
 			ManufacturerActivity.this.startActivity(intent);

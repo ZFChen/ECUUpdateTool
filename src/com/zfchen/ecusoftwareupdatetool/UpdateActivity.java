@@ -37,7 +37,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 	UpdateType selectedUpdateFile;
 	
 	/*-----蓝牙操作相关-------*/
-	static BluetoothSocket BTsocket;
+	BluetoothSocket BTsocket;
 	static OutputStream outStream;
 	static InputStream inStream;
 	
@@ -92,6 +92,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.update_software);
+		this.BTsocket = MainActivity.socket;
 		//获取UI控件
 		dataSwitch = (CheckBox)findViewById(R.id.Data_switch);
 		dataButton = (Button)findViewById(R.id.selectDataButton);

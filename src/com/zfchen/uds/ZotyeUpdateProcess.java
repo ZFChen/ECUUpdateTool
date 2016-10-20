@@ -90,4 +90,25 @@ public class ZotyeUpdateProcess implements UpdateProcess {
 		return false;
 	}
 
+	@Override
+	public boolean update() {
+		// TODO Auto-generated method stub
+		this.readInfoFromECU();
+		this.PreProgrammSessionControl();
+		this.securityAccess();
+		// 0:driver, 1:application, 2:calibration data
+		this.downloadDriverFile(this.filename[0]);
+		
+		if(this.filename[1] != null)
+			this.downloadApplicationFile(this.filename[1]);
+		if(this.filename[2] != null)
+			this.downloadCalibrationFile(this.filename[2]);
+		
+		this.writeInfoToECU();
+		this.resetECU();
+		
+		return false;
+	}
+	
+	
 }

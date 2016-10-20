@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -16,10 +15,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
@@ -90,7 +86,6 @@ public class MainActivity extends Activity {
 		rightTitle = (TextView) findViewById(R.id.title_right_text);
 		leftTitle.setText(R.string.title_activity_main); //设置标题为“汽车ECU故障诊断仪”
 		rightTitle.setText("设备未连接");
-		
 		
 		diagFunction.setOnTouchListener(new OnTouchListener() {
 			@Override

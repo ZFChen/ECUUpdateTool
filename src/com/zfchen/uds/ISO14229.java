@@ -1,7 +1,6 @@
 package com.zfchen.uds;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
@@ -9,9 +8,6 @@ import android.bluetooth.BluetoothSocket;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.zfchen.uds.ISO15765;
-import com.zfchen.uds.ISO15765.CANFrameBuffer;
-import com.zfchen.uds.ISO15765.SendThread;
-
 import com.zfchen.dbhelper.CANDatabaseHelper;
 import com.zfchen.dbhelper.CANDatabaseHelper.*;
 import com.zfchen.ecusoftwareupdatetool.Hex2Bin;
@@ -128,153 +124,25 @@ public class ISO14229 {
 	public boolean update(String manufac, String[] filePathList, UpdateSoftwareProcess step){
 		//byte positiveResponse;
 		boolean result = false;
-		
-		
-		
-/*		
-		step.setProcessStep(UpdateStep.ReadECUHardwareNumber);
-		positiveResponse = requestDiagService(UpdateStep.ReadECUHardwareNumber, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-		
-		step.setProcessStep(UpdateStep.ReadBootloaderID);
-		positiveResponse = requestDiagService(UpdateStep.ReadBootloaderID, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-		
-		step.setProcessStep(UpdateStep.RequestToExtendSession);
-		positiveResponse = requestDiagService(UpdateStep.RequestToExtendSession, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-		
-		step.setProcessStep(UpdateStep.DisableDTCStorage);
-		positiveResponse = requestDiagService(UpdateStep.DisableDTCStorage, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.DisableNonDiagComm);
-		positiveResponse = requestDiagService(UpdateStep.DisableNonDiagComm, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.RequestToProgrammingSession);
-		positiveResponse = requestDiagService(UpdateStep.RequestToProgrammingSession, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.RequestSeed);
-		positiveResponse = requestDiagService(UpdateStep.RequestSeed, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.SendKey);
-		positiveResponse = requestDiagService(UpdateStep.SendKey, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.WriteTesterSerialNumber);
-		positiveResponse = requestDiagService(UpdateStep.WriteTesterSerialNumber, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.WriteConfigureDate);
-		positiveResponse = requestDiagService(UpdateStep.WriteConfigureDate, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-//		//下载flash driver文件
-		step.setProcessStep(UpdateStep.RequestDownload);
-		positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[0]);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.TransferData);
-		positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.TransferExit);
-		positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.CheckSum);
-		positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.EraseMemory);
-		positiveResponse = requestDiagService(UpdateStep.EraseMemory, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-//		//下载application或calibration data文件(重复数据下载过程)
-		if(filePathList[1] != null){
-			positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[1]);//application
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-			positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-			positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-			positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
+		UpdateProcess updateProcess;
+		switch (manufac) {
+		case "zotye":
+		case "baic":
+		case "dfsk":	//目前 zotye,baic和dfsk三者的升级流程一样
+			updateProcess = new ZotyeUpdateProcess(this, filePathList);
+			updateProcess.update();
+			break;
+					
+		case "geely":
+			updateProcess = new GeelyUpdateProcess(this, filePathList);
+			updateProcess.update();
+			break;
+			
+		default:
+			System.out.println("The manufacturer isn't supported!");
+			break;
 		}
 		
-		if(filePathList[2] != null){
-			positiveResponse = requestDiagService(UpdateStep.RequestDownload, manufacturer, filePathList[2]);//calibration data
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-			positiveResponse = requestDiagService(UpdateStep.TransferData, manufacturer, null);
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-			positiveResponse = requestDiagService(UpdateStep.TransferExit, manufacturer, null);
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-//			
-			positiveResponse = requestDiagService(UpdateStep.CheckSum, manufacturer, null);
-//			if(iso15765.getReceiveData().get(0) != positiveResponse)
-//				return result;
-		}
-//		
-		step.setProcessStep(UpdateStep.CheckProgrammDependency);
-		positiveResponse = requestDiagService(UpdateStep.CheckProgrammDependency, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.ResetECU);
-		positiveResponse = requestDiagService(UpdateStep.ResetECU, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.RequestToExtendSession);
-		positiveResponse = requestDiagService(UpdateStep.RequestToExtendSession, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.EnableNonDiagComm);
-		positiveResponse = requestDiagService(UpdateStep.EnableNonDiagComm, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.EnableDTCStorage);
-		positiveResponse = requestDiagService(UpdateStep.EnableDTCStorage, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-//		
-		step.setProcessStep(UpdateStep.RequestToDefaultSession);
-		positiveResponse = requestDiagService(UpdateStep.RequestToDefaultSession, manufacturer, null);
-//		if(iso15765.getReceiveData().get(0) != positiveResponse)
-//			return result;
-*/		
 		result = true;
 		return result;
 	}

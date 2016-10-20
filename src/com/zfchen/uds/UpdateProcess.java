@@ -18,4 +18,6 @@ public interface UpdateProcess {
 	public boolean resetECU();
 	
 	public boolean ExitProgrammSessionControl();
+	
+	public boolean update();
 }
