@@ -134,7 +134,6 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 	public ArrayList<Integer> getCANID(SQLiteDatabase db, String key){
 		CANIdList.clear();
 		Cursor cursor = db.rawQuery("select * from candb where manufacturer like ?", new String[]{key});
-		System.out.println("Start query db!");
 		if(cursor.moveToFirst()){
 			/*
 			String phyId = cursor.getString(cursor.getColumnIndex("phyCANid"));

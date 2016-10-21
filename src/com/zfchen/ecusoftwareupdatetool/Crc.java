@@ -139,19 +139,26 @@ public class Crc {
 			crc = reflect(crc, order);
 		int i = 0;
 		int temp;
-		if (!refin)
+		if (!refin){
 			while ((len--) > 0)
 				try {
 					temp = (int)(p[i++] & 0xffL);	//由于p是byte数组，对于第八位（最高位）为1的数，直接取值进行运算时，会被当作负数处理，导致在crctab数组中查表时出现数组越界的情况
 					crc = (crc << 8) ^ crctab[ ((int)((crc >> (order-8)) & 0xffL) ^ temp) ];
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// TODO Auto-generated catch block
-					System.out.printf("byte[%d]=%d\n", i-1, p[i-1]);
+					//System.out.printf("byte[%d]=%d\n", i-1, p[i-1]);
 					e.printStackTrace();
 				}
-		else
+		} else {
 			while ((len--) > 0)
-				crc = (crc >> 8) ^ crctab[ (int) ((crc & 0xff) ^ p[i++])];
+				try {
+					temp = (int)(p[i++] & 0xffL);
+					crc = (crc >> 8) ^ crctab[ (int) ((crc & 0xff) ^ temp)];
+				} catch (ArrayIndexOutOfBoundsException e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
+		}		
 
 		if (refout^refin)
 			crc = reflect(crc, order);

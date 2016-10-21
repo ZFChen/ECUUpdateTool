@@ -51,7 +51,6 @@ public class ISO14229 {
 		this.filePath = filePath;
 	}
 
-
 	/**
 	 * @param step 升级步骤
 	 * @param manufac 车厂名

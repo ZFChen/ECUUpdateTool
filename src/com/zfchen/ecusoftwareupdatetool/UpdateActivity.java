@@ -16,6 +16,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.view.View;
 import android.widget.Button;
@@ -248,32 +249,43 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				if(driverInput.getText() != null)
+				if(driverSwitch.isChecked() == true)
 				{
 					filePath = new String[3];
-					if(appInput.getText() != null || dataInput.getText() != null){
+					
+					if(driverInput.getText().toString().equals("XXX_DRIVER.hex") == false)
 						filePath[0] = driverInput.getText().toString();	//驱动文件路径
-						filePath[1] = appInput.getText().toString();	//应用文件路径
-						filePath[2] = dataInput.getText().toString();	//数据文件路径
-						System.out.println("Update ECU software ...");
-						if(updateProcess.UpdateSoftwareFunctionState == false){
-							//升级选项设置完毕, 开始升级
-							SendThread sendThread = new SendThread(iso14229);
-							sendThread.start();
-							/*
-							iso14229.setFilePath(filePath);
-							boolean result = iso14229.update(manufacturer, filePath, updateProcess);
-							if(result){
-								Toast.makeText(getApplicationContext(), "升级完成", Toast.LENGTH_LONG).show();
-							}
-							*/
-						}else{
-							updateProcess.UpdateSoftwareFunctionState = true;
-							Toast.makeText(getApplicationContext(), "正在升级，请稍等", Toast.LENGTH_LONG).show();
-						}
+					
+					if(appSwitch.isChecked() || dataSwitch.isChecked()){//应用文件路径
+						if(appInput.getText().toString().equals("XXX_APP.hex") == false)
+							filePath[1] = appInput.getText().toString();	
+						if(dataInput.getText().toString().equals("XXX_EED.hex") == false)		//标定数据文件路径
+							filePath[2] = dataInput.getText().toString();	
+					}else {
+						Toast.makeText(getApplicationContext(), "应用文件和标定数据至少选择一个", Toast.LENGTH_SHORT).show();
+						return;
 					}
+					
+						System.out.println("Update ECU software ...");
+						/*for (String str : filePath) {
+							System.out.println(str);
+						}*/
+						if( (filePath[0] != null) && ((filePath[1] != null)||(filePath[2] != null)) ){
+							if(updateProcess.UpdateSoftwareFunctionState == false){
+								//升级选项设置完毕, 开始升级
+								updateProcess.UpdateSoftwareFunctionState = true;
+								SendThread sendThread = new SendThread(iso14229);
+								sendThread.start();
+							}
+							else{
+								//updateProcess.UpdateSoftwareFunctionState = true;
+								Toast.makeText(getApplicationContext(), "正在升级，请稍等", Toast.LENGTH_SHORT).show();
+							}
+						}else{
+							Toast.makeText(getApplicationContext(), "请选择文件", Toast.LENGTH_SHORT).show();
+						}
 				}else {
-					Toast.makeText(getApplicationContext(), "请先选择升级文件", Toast.LENGTH_LONG).show();
+					Toast.makeText(getApplicationContext(), "必须选择驱动文件", Toast.LENGTH_SHORT).show();
 				}
 			}
 			
@@ -324,8 +336,12 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 		public void run() {
 			// TODO Auto-generated method stub
 			super.run();
+			SendMessageToHandler(UpdateStep.ReadECUHardwareNumber);
 			iso14229.setFilePath(filePath);
 			iso14229.update(manufacturer, filePath, updateProcess);
+			updateProcess.UpdateSoftwareFunctionState = false;
+			Looper.prepare();
+			SendMessageToHandler(UpdateStep.RequestToDefaultSession);
 		}
 	}
 	
@@ -338,9 +354,9 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 	
 	/*----------handler用于处理界面更新与显示-------------*/
 	class HandlerMessage extends Handler{
-		public HandlerMessage(){
+		/*public HandlerMessage(){
 			
-		}
+		}*/
 
 		@Override
 		public void handleMessage(Message msg) {
@@ -355,9 +371,10 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 					progress = 50;
 				else if(step == UpdateStep.CheckProgrammDependency)
 					progress = 70;
-				else if(step == UpdateStep.RequestToDefaultSession)
+				else if(step == UpdateStep.RequestToDefaultSession){
 					progress = 100;
-				
+					Toast.makeText(getApplicationContext(), "升级完成!", Toast.LENGTH_LONG).show();
+					}
 				progressBar.setProgress(progress);
 			}
 		}	
