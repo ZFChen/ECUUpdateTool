@@ -185,10 +185,8 @@ public class MainActivity extends Activity {
 						Toast.LENGTH_LONG).show();
 				rightTitle.setText("连接断开了");
 				Intent myIntent = new Intent();
-				myIntent.setClass(MainActivity.this,
-						DisconnectWarningActivity.class);
+				myIntent.setClass(MainActivity.this, DisconnectWarningActivity.class);
 				startActivity(myIntent);
-
 			}
 		}
 
@@ -205,7 +203,7 @@ public class MainActivity extends Activity {
 	}
 
 	void ShowTips() {
-		String html = "<img src='car_tips'/>  软件使用小提示：请先选择”连接设备“，待手机成功连接至蓝牙转CAN设备时，即可进入”汽车诊断“功能！";
+		String html = "<img src='car_tips'/>  软件使用小提示：请先选择”连接设备“，待蓝牙连接成功后，即可进入”软件升级“功能！";
 		CharSequence ch = Html.fromHtml(html, new ImageGetter() {
 
 			@Override
@@ -371,10 +369,8 @@ public class MainActivity extends Activity {
 
 				break;
 			}
-			Toast.makeText(MainActivity.this, content, Toast.LENGTH_SHORT)
-					.show();
+			Toast.makeText(MainActivity.this, content, Toast.LENGTH_SHORT).show();
 		}
-
 	}
 	
 	/* (non-Javadoc)
@@ -391,23 +387,20 @@ public class MainActivity extends Activity {
 					connectThread = null;
 					try {
 						socket.close();
-
 					} catch (IOException i) {
 						i.printStackTrace();
 					}
 				}
 				connectThreadFlag = false;
 
-				ServerBluetoothMAC = data.getExtras().getString(
-						DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+				ServerBluetoothMAC = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 				connectThread = new ConnectThread();
 				connectThread.start();
 				/*---创建消息处理对象--*/
 				messageHandler = new myHandler();
 
 			} else {
-				Toast.makeText(this, "用户未选择配对设备,请重新选择", Toast.LENGTH_SHORT)
-						.show();
+				Toast.makeText(this, "用户未选择配对设备,请重新选择", Toast.LENGTH_SHORT).show();
 			}
 			break;
 		}

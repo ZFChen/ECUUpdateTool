@@ -16,14 +16,15 @@ public class ZotyeUpdateProcess implements UpdateProcess {
 	@Override
 	public boolean readInfoFromECU() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.ReadECUHardwareNumber, "zotye", null);	//22 F1 87
+		iso14229.requestDiagService(UpdateStep.RequestToExtendSession, "zotye", null);
+		iso14229.requestDiagService(UpdateStep.ReadECUSparePartNumber, "zotye", null);	//22 F1 87
 		return false;
 	}
 
 	@Override
 	public boolean PreProgrammSessionControl() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.RequestToExtendSession, "zotye", null);
+		iso14229.requestDiagService(UpdateStep.CheckProgrammCondition, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.DisableDTCStorage, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.DisableNonDiagComm, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.RequestToProgrammingSession, "zotye", null);
@@ -33,7 +34,9 @@ public class ZotyeUpdateProcess implements UpdateProcess {
 	@Override
 	public boolean writeInfoToECU() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.WriteTesterSerialNumber, "zotye", null);	//2E F1 87
+		iso14229.requestDiagService(UpdateStep.WriteECUSparePartNumber, "zotye", null);	//2E F1 87
+		iso14229.requestDiagService(UpdateStep.WriteTesterSerialNumber, "zotye", null);
+		iso14229.requestDiagService(UpdateStep.WriteUpdateDate, "zotye", null);	//写入升级日期(需要加入日期，格式为：16 08 29)
 		return false;
 	}
 
@@ -52,14 +55,15 @@ public class ZotyeUpdateProcess implements UpdateProcess {
 		iso14229.requestDiagService(UpdateStep.TransferData, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.TransferExit, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.CheckSum, "zotye", null);
-		iso14229.requestDiagService(UpdateStep.EraseMemory, "zotye", null);
+		
 		return false;
 	}
 
 	@Override
 	public boolean downloadCalibrationFile(String filePath) {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.RequestDownload, "zotye", filePath);
+		iso14229.requestDiagService(UpdateStep.EraseMemory, "zotye", filePath);
+		iso14229.requestDiagService(UpdateStep.RequestDownload, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.TransferData, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.TransferExit, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.CheckSum, "zotye", null);
@@ -70,7 +74,8 @@ public class ZotyeUpdateProcess implements UpdateProcess {
 	@Override
 	public boolean downloadApplicationFile(String filePath) {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.RequestDownload, "zotye", filePath);
+		iso14229.requestDiagService(UpdateStep.EraseMemory, "zotye", filePath);
+		iso14229.requestDiagService(UpdateStep.RequestDownload, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.TransferData, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.TransferExit, "zotye", null);
 		iso14229.requestDiagService(UpdateStep.CheckSum, "zotye", null);
@@ -81,6 +86,7 @@ public class ZotyeUpdateProcess implements UpdateProcess {
 	public boolean resetECU() {
 		// TODO Auto-generated method stub
 		iso14229.requestDiagService(UpdateStep.ResetECU, "zotye", null);
+		iso14229.requestDiagService(UpdateStep.RequestToDefaultSession, "zotye", null);
 		return false;
 	}
 

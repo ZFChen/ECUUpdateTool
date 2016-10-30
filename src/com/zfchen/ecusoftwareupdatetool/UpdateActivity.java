@@ -249,6 +249,11 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
+				if(BTsocket == null){
+					Toast.makeText(getApplicationContext(), "«Îœ»¡¨Ω”¿∂—¿", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				
 				if(driverSwitch.isChecked() == true)
 				{
 					filePath = new String[3];
@@ -365,7 +370,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 				UpdateStep step = (UpdateStep)msg.obj;
 				if(step == UpdateStep.ReadBootloaderID)
 					progress = 10;
-				else if(step == UpdateStep.WriteConfigureDate)
+				else if(step == UpdateStep.WriteConfigureData)
 					progress = 30;
 				else if(step == UpdateStep.TransferData)
 					progress = 50;

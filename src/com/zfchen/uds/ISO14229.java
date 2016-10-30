@@ -2,7 +2,9 @@ package com.zfchen.uds;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import android.bluetooth.BluetoothSocket;
 import android.database.sqlite.SQLiteDatabase;
@@ -37,7 +39,11 @@ public class ISO14229 {
 		super();
 		this.db = helper.getReadableDatabase();
 		helper.generateCanDB(db);
-		helper.generateUpdateDB(db);
+		
+		if(manufacturer == "geely")
+			helper.generateUpdateGeelyDatabase(db);
+		else
+			helper.generateUpdateForyouDatabase(db);
 		
 		this.canDBHelper = helper;
 		this.frame = new ArrayList<Byte>();
@@ -69,7 +75,7 @@ public class ISO14229 {
 		}
 		positiveCode = message.get(message.size()-1);	//取出积极响应码
 		message.remove(message.size()-1);
-
+		
 		ArrayList<Integer> canIDList = canDBHelper.getCANID(db, manufac);
 		
 		if(step == UpdateStep.RequestToExtendSession || step == UpdateStep.RequestToDefaultSession
@@ -81,7 +87,8 @@ public class ISO14229 {
 		}
 		response_can_id = canIDList.get(2); //respCANid, 用来过滤从车载CAN网络接收到的报文(考虑将该参数传至下位机，然后由下位机对报文进行过滤)
 		
-		if(step == UpdateStep.RequestDownload || step == UpdateStep.CheckSum || step == UpdateStep.EraseMemory){
+		if(step == UpdateStep.RequestDownload || step == UpdateStep.CheckSum || step == UpdateStep.EraseMemory
+				|| step == UpdateStep.WriteUpdateDate){
 			//对于：请求下载、传输数据、校验数据、擦除逻辑块， 这几个服务需要带额外的参数
 			this.addParameter(step, manufac, filePath, message);
 		} else if(step == UpdateStep.TransferData){
@@ -107,6 +114,7 @@ public class ISO14229 {
 			
 			try {
 				outStream.write(iso15765.frameBuffer.getFrame().get(i).data);
+				//outStream.write('\n');
 				Thread.sleep(1);
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -151,11 +159,11 @@ public class ISO14229 {
 		byte[] check = null;
 		if((path != filePath) && (filePath!=null)){
 			h2b.getFileSize(filePath);
-			System.out.println(filePath);
+			//System.out.println(filePath);
 			fileSize = h2b.getSize();
-			System.out.println(fileSize);
+			//System.out.println(fileSize);
 			startAddress = h2b.getStarting_address();	//起始地址
-			System.out.println(startAddress);
+			//System.out.println(startAddress);
 			this.data = h2b.getHexFileData(filePath);	//hex文件的数据部分
 			this.path = filePath;
 		}
@@ -211,6 +219,29 @@ public class ISO14229 {
 				frame.add(b);
 			}
 			for (byte b : fileSize) {	//add data length
+				frame.add(b);
+			}
+				break;
+		
+		case WriteUpdateDate:
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd",Locale.CHINA);	//获取系统时间,需要加上位置信息(Locale)
+			byte[] temp_data = sdf.format(new java.util.Date()).substring(2).getBytes();	/*ASC II格式的日期(例如：20161031)*/
+			byte[] data = new byte[3];
+			
+			for(int i=0; i< temp_data.length; i++){
+				if( temp_data[i]>='0' && temp_data[i]<='9'){
+					temp_data[i] = (byte)(temp_data[i]-'0');
+				} else {
+					System.out.printf("The format of system time is error!");
+				}
+			}
+			
+			for(int i=0; i< temp_data.length-1; i+=2){
+				data[(i/2)]=(byte) ((temp_data[i]<<4)|temp_data[i+1]);
+			}
+			
+			for (byte b : data) {	//add current data
 				frame.add(b);
 			}
 				break;

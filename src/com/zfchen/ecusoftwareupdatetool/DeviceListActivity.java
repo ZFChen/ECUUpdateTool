@@ -47,8 +47,6 @@ public class DeviceListActivity extends Activity{
         }else{
         	DisplayPairedDevice();
         }
-        
-       
 	}
 
 	void DisplayPairedDevice(){

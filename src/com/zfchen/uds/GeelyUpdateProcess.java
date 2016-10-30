@@ -32,6 +32,7 @@ public class GeelyUpdateProcess implements UpdateProcess {
 	@Override
 	public boolean downloadApplicationFile(String filePath) {
 		// TODO Auto-generated method stub
+		iso14229.requestDiagService(UpdateStep.EraseMemory, "geely", null);
 		iso14229.requestDiagService(UpdateStep.RequestDownload, "geely", filePath);
 		iso14229.requestDiagService(UpdateStep.TransferData, "geely", null);
 		iso14229.requestDiagService(UpdateStep.TransferExit, "geely", null);
@@ -43,11 +44,11 @@ public class GeelyUpdateProcess implements UpdateProcess {
 	@Override
 	public boolean downloadDriverFile(String filePath) {
 		// TODO Auto-generated method stub
+		iso14229.requestDiagService(UpdateStep.EraseMemory, "geely", null);
 		iso14229.requestDiagService(UpdateStep.RequestDownload, "geely", filePath);
 		iso14229.requestDiagService(UpdateStep.TransferData, "geely", null);
 		iso14229.requestDiagService(UpdateStep.TransferExit, "geely", null);
 		iso14229.requestDiagService(UpdateStep.CheckSum, "geely", null);
-		iso14229.requestDiagService(UpdateStep.EraseMemory, "geely", null);
 		return false;
 	}
 	
@@ -77,7 +78,7 @@ public class GeelyUpdateProcess implements UpdateProcess {
 	public boolean writeInfoToECU() {
 		// TODO Auto-generated method stub
 		iso14229.requestDiagService(UpdateStep.WriteTesterSerialNumber, "geely", null);
-		iso14229.requestDiagService(UpdateStep.WriteConfigureDate, "geely", null);
+		iso14229.requestDiagService(UpdateStep.WriteConfigureData, "geely", null);
 		return false;
 	}
 
