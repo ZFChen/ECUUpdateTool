@@ -177,6 +177,9 @@ public class Hex2Bin {
 			FileReader fr = new FileReader(filename);
 			BufferedReader br = new BufferedReader(fr);
 			
+			segment = 0;
+			upper_address = 0;
+
 			highest_address = 0;
 			lowest_address = Long.MAX_VALUE;
 			seg_lin_select = NO_ADDRESS_TYPE_SELECTED;
@@ -202,8 +205,8 @@ public class Hex2Bin {
 				for(int i=0; i<(al.size()-1); i++){
 					sum += al.get(i);
 				}
-				if(((sum+checksum) & 0xFF) != 0)
-					System.out.println("The checksum of hex file exist error!");
+//				if(((sum+checksum) & 0xFF) != 0)
+//					System.out.println("The checksum of hex file exist error!");
 				
 				this.parseHex(RecordType.values()[type]);
 				//al.clear();

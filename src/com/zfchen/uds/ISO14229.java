@@ -106,15 +106,15 @@ public class ISO14229 {
 		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		int num = iso15765.frameBuffer.getFrame().size();
 		for(int i=0; i<num; i++){
+			/*
 			for(int j=0; j<12; j++){
 				int a = (int)(iso15765.frameBuffer.getFrame().get(i).data[j]&0xFF);
 				System.out.printf("%2h ", a);
 			}
 			System.out.println();
-			
+			*/
 			try {
 				outStream.write(iso15765.frameBuffer.getFrame().get(i).data);
-				//outStream.write('\n');
 				Thread.sleep(1);
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -161,9 +161,14 @@ public class ISO14229 {
 			h2b.getFileSize(filePath);
 			//System.out.println(filePath);
 			fileSize = h2b.getSize();
-			//System.out.println(fileSize);
 			startAddress = h2b.getStarting_address();	//起始地址
-			//System.out.println(startAddress);
+			
+			System.out.print("startAddress = ");
+			for (byte b : startAddress) {
+				System.out.printf("%2h ",(int)(b&0xFF));
+			}
+			System.out.println();
+			
 			this.data = h2b.getHexFileData(filePath);	//hex文件的数据部分
 			this.path = filePath;
 		}
@@ -295,12 +300,13 @@ public class ISO14229 {
 			}
 			int num = iso15765.frameBuffer.getFrame().size();
 			for(int k=0; k<num; k++){
+				/*
 				for(int m=0; m<12; m++){
 					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
 					System.out.printf("%2h ", a);
 				}
 				System.out.println();
-				
+				*/
 				//将数据写入流中——发送数据
 				try {
 					outStream.write(iso15765.frameBuffer.getFrame().get(k).data);
@@ -334,11 +340,11 @@ public class ISO14229 {
 			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
 			int num = iso15765.frameBuffer.getFrame().size();
 			for(int k=0; k<num; k++){
-				for(int m=0; m<12; m++){
-					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
-					System.out.printf("%2h ", a);
-				}
-				System.out.println();
+//				for(int m=0; m<12; m++){
+//					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
+//					System.out.printf("%2h ", a);
+//				}
+//				System.out.println();
 				
 				//将数据写入流中——发送数据
 				try {
