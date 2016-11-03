@@ -113,7 +113,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 		
 		Intent intent = getIntent();
 		manufacturer = intent.getStringExtra("manufacturer");
-		//System.out.println(manufacturer);
+		System.out.println(manufacturer);
 		
 		CANDatabaseHelper dbHelper = new CANDatabaseHelper(this, "canId.db3",null, 1);
 //		SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -359,10 +359,7 @@ public class UpdateActivity extends Activity implements CallbackBundle{
 	
 	/*----------handler用于处理界面更新与显示-------------*/
 	class HandlerMessage extends Handler{
-		/*public HandlerMessage(){
-			
-		}*/
-
+		
 		@Override
 		public void handleMessage(Message msg) {
 			if(msg.what == 123){

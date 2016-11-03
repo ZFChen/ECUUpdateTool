@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothSocket;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.zfchen.uds.ISO15765;
+import com.zfchen.uds.ISO15765.ReceiveThread;
 import com.zfchen.dbhelper.CANDatabaseHelper;
 import com.zfchen.dbhelper.CANDatabaseHelper.*;
 import com.zfchen.ecusoftwareupdatetool.Hex2Bin;
@@ -18,7 +19,7 @@ import com.zfchen.ecusoftwareupdatetool.UpdateActivity.UpdateSoftwareProcess;
 
 public class ISO14229 {
 	
-	final int blockLength = 514;	/*指定每次传输的最大数据块长度*/
+	final int MaxBlockLength = 514;	/*指定每次传输的最大数据块长度*/
 	int response_can_id = 0;
 	int request_can_id = 0;
 	SQLiteDatabase db = null;
@@ -35,12 +36,14 @@ public class ISO14229 {
 	String path;
 	byte[] fileSize;
 	byte[] startAddress;
+	ReceiveThread receiveThread;
+	
 	public ISO14229(CANDatabaseHelper helper, BluetoothSocket bTsocket, String manufacturer){
 		super();
 		this.db = helper.getReadableDatabase();
 		helper.generateCanDB(db);
 		
-		if(manufacturer == "geely")
+		if(manufacturer.equals("geely"))
 			helper.generateUpdateGeelyDatabase(db);
 		else
 			helper.generateUpdateForyouDatabase(db);
@@ -95,7 +98,7 @@ public class ISO14229 {
 			//this.data.addAll(0, message);
 			//message.addAll(this.data);
 			System.out.println("the length of file transfered is " + this.data.size());
-			this.transferFile(514, this.data, this.socket, request_can_id);
+			this.transferFile(MaxBlockLength, this.data, this.socket, request_can_id);
 			return positiveCode;
 		}
 		
@@ -103,8 +106,14 @@ public class ISO14229 {
 		//发送块数据
 		//iso15765.new SendThread(socket, message).start();
 		
+		if(receiveThread == null){
+			receiveThread = iso15765.new ReceiveThread(this.socket, this.canDBHelper);
+			receiveThread.start();
+		}
+		
 		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		int num = iso15765.frameBuffer.getFrame().size();
+			
 		for(int i=0; i<num; i++){
 			/*
 			for(int j=0; j<12; j++){
@@ -132,16 +141,26 @@ public class ISO14229 {
 		//byte positiveResponse;
 		boolean result = false;
 		UpdateProcess updateProcess;
+		
 		switch (manufac) {
+		//目前 zotye,baic和dfsk三者的升级流程都是参照华阳的软件升级规格书
 		case "zotye":
+			updateProcess = new ForyouUpdateProcess(this, filePathList, manufac);
+			updateProcess.update();
+			break;
+			
 		case "baic":
-		case "dfsk":	//目前 zotye,baic和dfsk三者的升级流程一样
-			updateProcess = new ZotyeUpdateProcess(this, filePathList);
+			updateProcess = new ForyouUpdateProcess(this, filePathList, manufac);
+			updateProcess.update();
+			break;
+			
+		case "dfsk":
+			updateProcess = new ForyouUpdateProcess(this, filePathList, manufac);
 			updateProcess.update();
 			break;
 					
-		case "geely":
-			updateProcess = new GeelyUpdateProcess(this, filePathList);
+		case "geely":	//吉利的升级流程参照"吉利的升级规格书"
+			updateProcess = new GeelyUpdateProcess(this, filePathList, manufac);
 			updateProcess.update();
 			break;
 			

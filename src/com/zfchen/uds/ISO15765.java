@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.EnumMap;
+
+import com.zfchen.dbhelper.CANDatabaseHelper;
+import com.zfchen.dbhelper.CANDatabaseHelper.UpdateStep;
 
 import android.bluetooth.BluetoothSocket;
 
@@ -225,29 +229,30 @@ public class ISO15765 {
 			}
 			
 			for(int k = 0;k < 6;k++){	/* 第一帧中类型和数据长度占前两个2字节，数据占后6个字节，这里是取第一帧中的数据 */
-				receiveData.set(k, (byte)receiveBuf.getFrame().get(0).data[k+5]);
+				receiveData.add(k, (byte)receiveBuf.getFrame().get(0).data[k+5]);
 			}
 			
 			if(sn > 2){ /* sn>2(多帧传输时sn>=2),表示有多条连续帧 */
 				for(int k = 0;k < sn - 2;k++){
 					for(int m = 0;m < 7;m++){
 						/* 连续帧的索引(sn)从1开始（第一帧的索引为0）,以为k从0开始递增，所以这里使用k+1 */
-						receiveData.set(m+k*7+6, (byte)receiveBuf.getFrame().get(k+1).data[m+4]);	/* 在自定义的数据格式中，连续帧的数据从第4个字节开始（第3个字节为类型和序号），所以这里的offset为4(m+4) */
+						receiveData.add(m+k*7+6, (byte)receiveBuf.getFrame().get(k+1).data[m+4]);	/* 在自定义的数据格式中，连续帧的数据从第4个字节开始（第3个字节为类型和序号），所以这里的offset为4(m+4) */
 					}
 				}
 				for(int k = 0;k < dataLength-(6+7*(sn-2));k++){ /*最后一条连续帧 ,剩余字节数 = 总长度-第一帧数据-前面所有的连续帧数据    ==> dataLength-6-(sn-2)*7 */
-					receiveData.set(k+(sn-2)*7+6, (byte)receiveBuf.getFrame().get(sn-1).data[k+4]);	/* 总共sn帧报文，最后一帧的索引为sn-1（0到sn-1） */
+					receiveData.add(k+(sn-2)*7+6, (byte)receiveBuf.getFrame().get(sn-1).data[k+4]);	/* 总共sn帧报文，最后一帧的索引为sn-1（0到sn-1） */
 				}
 			}else{  /* sn=2(多帧传输时sn>=2),表示只有一条连续帧 */
 				for(int k = 0;k < dataLength-6;k++){
-					receiveData.set(k+6, (byte)receiveBuf.getFrame().get(1).data[k+4]);
+					receiveData.add(k+6, (byte)receiveBuf.getFrame().get(1).data[k+4]);
 					
 				}
 			}
 		}else{//single frame
 			dataLength = receiveBuf.getFrame().get(0).data[3];
 			for(int i = 0;i < dataLength;i++){
-				receiveData.set(i, (byte)receiveBuf.getFrame().get(0).data[i+4]);
+				//receiveData.set(i, (byte)receiveBuf.getFrame().get(0).data[i+4]);
+				receiveData.add(receiveBuf.getFrame().get(0).data[i+4]);
 			}
 		}
 		return receiveData;
@@ -332,6 +337,7 @@ public class ISO15765 {
 		return sendBuffer;
 	}
 	
+	
 	/*------将数据发送给蓝牙转接板(下位机)---------*/
 	public void SendMessageToDevice(byte[] buf){
 		try{
@@ -342,15 +348,19 @@ public class ISO15765 {
 		}
 	}
 	
-	protected class ReceiveThread extends Thread{
+	
+	public class ReceiveThread extends Thread{
 		BluetoothSocket socket;
 		InputStream inStream;
 		CANFrameBuffer buf;
-		
-		public ReceiveThread(BluetoothSocket socket) {
+		//UpdateStep step;
+		CANDatabaseHelper canDBHelper;
+		public ReceiveThread(BluetoothSocket socket, CANDatabaseHelper helper) {
 			super();
 			// TODO Auto-generated constructor stub
 			this.socket = socket;
+			//this.step = st;
+			this.canDBHelper = helper;
 			try{
 				inStream = socket.getInputStream();
 			}catch(IOException e){
@@ -368,12 +378,14 @@ public class ISO15765 {
 		public void run() {
 			// TODO Auto-generated method stub
 			super.run();
-			byte[] tempBuffer = new byte[12];
-			ArrayList<Byte> receiveBuffer = new ArrayList<Byte>();
-			int num = 0;
-			buf = new CANFrameBuffer();
-			int id = 0;
 			
+			byte[] tempBuffer = new byte[12];
+			//ArrayList<Byte> receiveBuffer = new ArrayList<Byte>();
+			//int num = 0;
+			buf = new CANFrameBuffer();
+			//int id = 0;
+			boolean stopReceiveMessageFlag = true;
+			/*
 			while(num < 12){
 				try{
 					num += inStream.read(tempBuffer); //每次读取最多12个字节(数组的长度), 返回实际读取到的字节数 
@@ -412,41 +424,156 @@ public class ISO15765 {
 				tempBuffer[i] = receiveBuffer.get(0);
 				receiveBuffer.remove(0);
 			}
-			
-			int length = ReceiveNetworkFrameHandle(tempBuffer, request_can_id);
-			Item item = new Item();
-			item.data = tempBuffer.clone();
-			buf.getFrame().add(item);
-			
-			if(length <= 7){
-				//single frame
-			}else {
-				//根据报文的数据长度, 计算报文的帧数
-				int sn = (length-6)/7;	/* 第一帧的数据长度为6个字节，后面连续帧的数据长度为7个字节 */
-				if((length-6)%7 == 0){
-					sn = sn + 1;
-				}else{
-					sn = sn + 2;
+			*/
+			while(stopReceiveMessageFlag){
+				tempBuffer = readCANMessage(response_can_id, inStream);
+				for (Byte b : tempBuffer) {
+					System.out.printf("%2h ", (int)(b&0xFF));
 				}
-				for(int i=0; i<sn; i++){
-					if(id == response_can_id){	//流控制帧不能存入接收数据缓存中
-						try {
-							inStream.read(tempBuffer);
-							Item it = new Item();
-							it.data = tempBuffer.clone();
-							buf.getFrame().add(it);
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+				System.out.println();
+				
+				int length = ReceiveNetworkFrameHandle(tempBuffer, request_can_id);
+				Item item = new Item();
+				item.data = tempBuffer.clone();
+				buf.getFrame().add(item);
+				
+				if(length <= 7){
+					//single frame
+				}else {
+					//根据报文的数据长度, 计算报文的帧数
+					int sn = (length-6)/7;	/* 第一帧的数据长度为6个字节，后面连续帧的数据长度为7个字节 */
+					if((length-6)%7 == 0){
+						sn = sn + 1;
+					}else{
+						sn = sn + 2;
+					}
+					for(int i=0; i<sn; i++){
+						/*
+						if(id == response_can_id){	//流控制帧不能存入接收数据缓存中
+							try {
+								inStream.read(tempBuffer);
+								Item it = new Item();
+								it.data = tempBuffer.clone();
+								buf.getFrame().add(it);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						*/
+						tempBuffer = readCANMessage(response_can_id, inStream);
+						Item it = new Item();
+						it.data = tempBuffer.clone();
+						buf.getFrame().add(it);
+					}
+				}
+				if(tempBuffer[3] == (byte)0x30) //接收到流控帧
+					this.notify();	//唤醒其他线程
+				
+				receiveData = UnPackCANFrameData(buf);	//返回接收到的数据
+				
+				for (Byte b : receiveData) {
+					System.out.printf("%2h ", (int)(b&0xFF));
+				}
+				System.out.println();
+				
+				//boolean receivePositiveMessageFlag = false;
+				/*
+				ArrayList<Byte> message;
+				EnumMap<UpdateStep, String> stepMap = canDBHelper.getStepMap();
+
+				for (UpdateStep step : stepMap.keySet()) {	//遍历map对象
+					message = canDBHelper.getCANMessage(step);
+					message.set(0, (byte)(message.get(0)+0x40));	//请求id号+0x40 = 积极响应码
+					
+					if(receiveData.get(0) == message.get(0)){
+						int i = message.size();
+						if(i>2){
+							if(message.get(i-2) == message.get(i-2)){	//对于有子功能号的服务，需要识别是哪个一子功能
+								canDBHelper.getResultResponse().put(step, true);//设置对应的响应状态
+								break;
+							}
+						}else{
+							canDBHelper.getResultResponse().put(step, true);
+							break;
 						}
 					}
 				}
+				*/
+				/*
+				message = canDBHelper.getCANMessage(step);
+				message.set(0, (byte)(message.get(0)+0x40));	//请求id号+0x40 = 积极响应码
+				
+				if(receiveData.get(0) == message.get(0)){	//响应码相同
+					int i = message.size();
+					if(i>2){
+						if(message.get(i-2) == message.get(i-2))	//对于有子功能号的服务，需要识别是哪个一子功能
+							canDBHelper.getResultResponse().put(step, true);//设置对应的响应状态
+					}else
+						canDBHelper.getResultResponse().put(step, true);
+				}
+				else
+					canDBHelper.getResultResponse().put(step, false);
+				*/
 			}
-			if(tempBuffer[3] == (byte)0x30) //接收到流控帧
-				this.notify();	//唤醒其他线程
-			
-			receiveData = UnPackCANFrameData(buf);	//返回接收到的数据
 		}
+	}
+	
+	private byte[] readCANMessage(int CAN_id, InputStream is){
+		
+		int readBytes = 0;
+		int num=0;
+		byte[] message = new byte[12];
+		int len = message.length;
+		
+		while (readBytes < len) {
+			try {
+				num = is.read(message, readBytes, len-readBytes);
+				System.out.println("num = " + num);
+				for(int i=readBytes; i<(num+readBytes); i++)
+					System.out.printf("%2h ", (int)(message[readBytes]&0xFF));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+//			for(int i=0; i<num; i++){	//第一个字节为0xEE,后两个字节为CAN ID号，表明这是一帧报文的头
+//				if(message[i] == 0xEE){
+//					if(i>0 && (num-i>2)){	//如果0xEE不是第一个数据，则移除报文头之前的数据
+//						if((int)((message[i+1]<<8)|message[i+2]) == CAN_id){
+//							for(int j=i; j<num; j++){
+//								message[j-i] = message[j];
+//							}
+//							num = num-i;
+//						}
+//						System.out.printf("message id = %4h \n", (int)(message[i+1]<<8)|message[i+2]);
+//					}
+//					
+//					
+//					break;
+//				}
+//			}
+			
+           //判断是不是读到了数据流的末尾 ，防止出现死循环。
+//            if (num == -1) {
+//                break;
+//            }
+			
+            readBytes += num;
+            
+          //对收到的数据进行校验
+//            if(readBytes == len){
+//            	byte sum = 0;
+//            	for (byte b : message) {
+//            		sum += b;
+//				}
+//            	if(sum != message[len-1])
+//            		readBytes = 0;
+//            }
+            	
+        }
+
+		return message;
 	}
 	
 	

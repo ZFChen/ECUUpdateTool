@@ -39,6 +39,8 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 	};
 	
 	EnumMap<UpdateStep, String> stepMap = null;
+	EnumMap<UpdateStep, Boolean> resultResponse = null;
+	
 	ArrayList<Integer> CANIdList = null;
 	ArrayList<Byte> CANMessage = null;
 	final String CREATE_CANID_TABLE_SQL = "CREATE TABLE IF NOT EXISTS candb (canid integer primary key autoincrement, " +
@@ -54,6 +56,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		CANIdList = new ArrayList<>();
 		CANMessage = new ArrayList<>();
 		stepMap = new EnumMap<UpdateStep, String>(UpdateStep.class);
+		resultResponse = new EnumMap<UpdateStep, Boolean>(UpdateStep.class);
 	}
 
 	@Override
@@ -83,6 +86,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 	}
 	
 	public void generateUpdateGeelyDatabase(SQLiteDatabase db){	/* 参照Geely的Bootloader流程 */
+		System.out.println("generate Geely Database!");
 		stepMap.clear();
 		stepMap.put(UpdateStep.ReadECUHardwareNumber, "22F19362");	/*最后一个byte是积极响应码*/
 		stepMap.put(UpdateStep.ReadBootloaderID, "22F18062");
@@ -108,6 +112,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 	
 	public void generateUpdateForyouDatabase(SQLiteDatabase db){	/* 参照恒润的Bootloader流程 */
 		stepMap.clear();
+		System.out.println("generate Foryou Database!");
 		stepMap.put(UpdateStep.ReadECUSparePartNumber, "22F18762");	/*最后一个byte是积极响应码*/
 		stepMap.put(UpdateStep.RequestToExtendSession, "100350");
 		stepMap.put(UpdateStep.DisableDTCStorage, "8502C5");
@@ -127,6 +132,38 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		stepMap.put(UpdateStep.CheckProgrammDependency, "3101FF0171");
 		stepMap.put(UpdateStep.ResetECU, "110151");
 		stepMap.put(UpdateStep.RequestToDefaultSession, "100150");
+	}
+	
+	
+	public EnumMap<UpdateStep, String> getStepMap() {
+		return stepMap;
+	}
+
+	public void initResponseDatabase(SQLiteDatabase db){
+		resultResponse.clear();
+		resultResponse.put(UpdateStep.ReadECUSparePartNumber, null);
+		resultResponse.put(UpdateStep.ReadECUHardwareNumber, null);
+		resultResponse.put(UpdateStep.ReadBootloaderID, null);
+		resultResponse.put(UpdateStep.RequestToExtendSession, null);
+		resultResponse.put(UpdateStep.DisableDTCStorage, null);
+		resultResponse.put(UpdateStep.RequestToProgrammingSession, null);
+		resultResponse.put(UpdateStep.RequestSeed, null);
+		resultResponse.put(UpdateStep.SendKey, null);
+		resultResponse.put(UpdateStep.WriteTesterSerialNumber, null);
+		resultResponse.put(UpdateStep.WriteECUSparePartNumber, null);
+		resultResponse.put(UpdateStep.WriteConfigureData, null);
+		resultResponse.put(UpdateStep.WriteUpdateDate, null);
+		resultResponse.put(UpdateStep.RequestDownload, null);
+		resultResponse.put(UpdateStep.TransferData, null);
+		resultResponse.put(UpdateStep.TransferExit, null);
+		resultResponse.put(UpdateStep.CheckSum, null);
+		resultResponse.put(UpdateStep.EraseMemory, null);
+		resultResponse.put(UpdateStep.CheckProgrammCondition, null);
+		resultResponse.put(UpdateStep.CheckProgrammDependency, null);
+		resultResponse.put(UpdateStep.ResetECU, null);
+		resultResponse.put(UpdateStep.EnableNonDiagComm, null);
+		resultResponse.put(UpdateStep.EnableDTCStorage, null);
+		resultResponse.put(UpdateStep.RequestToDefaultSession, null);
 	}
 	
 	/*
@@ -158,6 +195,18 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		//CANMessage.add(Integer.parseInt(stepMap.get(step), 16));
 		return CANMessage;
 	}
+	
+	
+	
+	public EnumMap<UpdateStep, Boolean> getResultResponse() {
+		return resultResponse;
+	}
+
+	public void setResultResponse(EnumMap<UpdateStep, Boolean> resultResponse) {
+		this.resultResponse = resultResponse;
+	}
+	
+	
 	
 	public ArrayList<Integer> getCANID(SQLiteDatabase db, String key){
 		CANIdList.clear();

@@ -209,7 +209,6 @@ public class Hex2Bin {
 //					System.out.println("The checksum of hex file exist error!");
 				
 				this.parseHex(RecordType.values()[type]);
-				//al.clear();
 			}
 			
 			max_length = (int)(highest_address - lowest_address+1);
