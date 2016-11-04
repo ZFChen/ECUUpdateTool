@@ -22,6 +22,8 @@ public class ISO15765 {
 		INVALID_FRAME};
 	
 	final int CAN_frame_message_length = 12;
+	final int message_head = (int)(0xEE&0xFF);
+	
 	/*-------CAN报文缓冲类定义--------*/
 	public class Item{	//每条数据长度为12个字节，格式为： 0xee(一个起始字节)+CAN ID（2个字节）+数据（8个字节）+校验和（一个字节）
 		public byte[] data = new byte[CAN_frame_message_length];
@@ -355,6 +357,7 @@ public class ISO15765 {
 		CANFrameBuffer buf;
 		//UpdateStep step;
 		CANDatabaseHelper canDBHelper;
+		
 		public ReceiveThread(BluetoothSocket socket, CANDatabaseHelper helper) {
 			super();
 			// TODO Auto-generated constructor stub
@@ -427,6 +430,7 @@ public class ISO15765 {
 			*/
 			while(stopReceiveMessageFlag){
 				tempBuffer = readCANMessage(response_can_id, inStream);
+				System.out.printf("readCANMessage = ");
 				for (Byte b : tempBuffer) {
 					System.out.printf("%2h ", (int)(b&0xFF));
 				}
@@ -435,6 +439,8 @@ public class ISO15765 {
 				int length = ReceiveNetworkFrameHandle(tempBuffer, request_can_id);
 				Item item = new Item();
 				item.data = tempBuffer.clone();
+				
+				buf.getFrame().clear();
 				buf.getFrame().add(item);
 				
 				if(length <= 7){
@@ -478,7 +484,7 @@ public class ISO15765 {
 				System.out.println();
 				
 				//boolean receivePositiveMessageFlag = false;
-				/*
+				
 				ArrayList<Byte> message;
 				EnumMap<UpdateStep, String> stepMap = canDBHelper.getStepMap();
 
@@ -486,12 +492,16 @@ public class ISO15765 {
 					message = canDBHelper.getCANMessage(step);
 					message.set(0, (byte)(message.get(0)+0x40));	//请求id号+0x40 = 积极响应码
 					
+					System.out.printf("%2h , %2h \n", (int)message.get(0), receiveData.get(0));
+					
 					if(receiveData.get(0) == message.get(0)){
 						int i = message.size();
 						if(i>2){
 							if(message.get(i-2) == message.get(i-2)){	//对于有子功能号的服务，需要识别是哪个一子功能
 								canDBHelper.getResultResponse().put(step, true);//设置对应的响应状态
 								break;
+							} else {
+								System.out.println("don't support the sub-function!");
 							}
 						}else{
 							canDBHelper.getResultResponse().put(step, true);
@@ -499,7 +509,7 @@ public class ISO15765 {
 						}
 					}
 				}
-				*/
+				
 				/*
 				message = canDBHelper.getCANMessage(step);
 				message.set(0, (byte)(message.get(0)+0x40));	//请求id号+0x40 = 积极响应码
@@ -529,50 +539,68 @@ public class ISO15765 {
 		while (readBytes < len) {
 			try {
 				num = is.read(message, readBytes, len-readBytes);
-				System.out.println("num = " + num);
+				System.out.printf("num = %d, readBytes = %d\n", num, readBytes);
 				for(int i=readBytes; i<(num+readBytes); i++)
-					System.out.printf("%2h ", (int)(message[readBytes]&0xFF));
+					System.out.printf("%2h ", (int)(message[i]&0xFF));
+				System.out.println();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-//			for(int i=0; i<num; i++){	//第一个字节为0xEE,后两个字节为CAN ID号，表明这是一帧报文的头
-//				if(message[i] == 0xEE){
-//					if(i>0 && (num-i>2)){	//如果0xEE不是第一个数据，则移除报文头之前的数据
-//						if((int)((message[i+1]<<8)|message[i+2]) == CAN_id){
-//							for(int j=i; j<num; j++){
-//								message[j-i] = message[j];
-//							}
-//							num = num-i;
-//						}
-//						System.out.printf("message id = %4h \n", (int)(message[i+1]<<8)|message[i+2]);
-//					}
-//					
-//					
-//					break;
-//				}
-//			}
+			readBytes += num;
+			
+			if(readBytes >= len){
+				/*
+				int a = message[1];
+				int b = (int)message[2]&0xFF;	//对于byte类型，超出0x7F大小的数字会被视为负数，在转成int类型时也会变成负数（变为0xFFFF...）
+				System.out.printf("a= %2h, b= %2h, message id = %4h \n", a, b, (a<<8)|b);
+				*/
+				
+				for(int i=0; i<num; i++){	//第一个字节为0xEE,后两个字节为CAN ID号，表明这是一帧报文的头
+					if((int)(message[i]&0xFF) == message_head){
+						if(num-i>2){	//如果0xEE不是第一个数据，则移除报文头之前的数据
+							int CAN_ID_Message = (int)(message[i+1]<<8)|(message[i+2]&0xFF);
+							System.out.printf("message id = %4h \n", CAN_ID_Message);
+							if(CAN_ID_Message == CAN_id){
+								if(i>0){
+									for(int j=i; j<num; j++){
+										message[j-i] = message[j];
+									}
+									readBytes -= i;
+								}
+								break;
+							}
+						}
+					}
+					
+					//(遍历到数组尾)没有找到报头,则清除该帧数据,重新接收
+					if(i == num-1){
+						readBytes = 0;
+					}
+				}
+			}
 			
            //判断是不是读到了数据流的末尾 ，防止出现死循环。
 //            if (num == -1) {
 //                break;
 //            }
-			
-            readBytes += num;
-            
+			 
           //对收到的数据进行校验
-//            if(readBytes == len){
-//            	byte sum = 0;
-//            	for (byte b : message) {
-//            		sum += b;
-//				}
-//            	if(sum != message[len-1])
-//            		readBytes = 0;
-//            }
+            if(readBytes == len){
+            	byte sum = 0;
+            	for(int i=0; i<message.length-1; i++){
+            		sum += message[i];
+				}
+            	System.out.printf("checksum = %2h \n", (int)(sum&0xFF));
             	
+            	//如果校验码错误,则清除该帧数据,重新接收
+            	if(sum != message[len-1]){
+            		System.out.println("checksum exist error!");
+            		readBytes = 0;
+            	}
+            }	
         }
-
 		return message;
 	}
 	

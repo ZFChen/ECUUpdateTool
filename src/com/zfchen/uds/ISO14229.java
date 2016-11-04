@@ -124,7 +124,8 @@ public class ISO14229 {
 			*/
 			try {
 				outStream.write(iso15765.frameBuffer.getFrame().get(i).data);
-				Thread.sleep(1);
+				if((num>1) && (i==0))	//multiple frame
+					Thread.sleep(1);	//µÈ´ýÁ÷¿ØÖÆÖ¡
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
