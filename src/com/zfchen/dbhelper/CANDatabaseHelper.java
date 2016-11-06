@@ -35,7 +35,8 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		ResetECU,
 		EnableNonDiagComm,
 		EnableDTCStorage,
-		RequestToDefaultSession
+		RequestToDefaultSession,
+		FlowControl
 	};
 	
 	EnumMap<UpdateStep, String> stepMap = null;
@@ -43,6 +44,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 	
 	ArrayList<Integer> CANIdList = null;
 	ArrayList<Byte> CANMessage = null;
+	
 	final String CREATE_CANID_TABLE_SQL = "CREATE TABLE IF NOT EXISTS candb (canid integer primary key autoincrement, " +
 			"manufacturer varchar(10), phyCANid varchar(4),funcCANid varchar(4), respCANid varchar(4))";
 	
@@ -57,6 +59,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		CANMessage = new ArrayList<>();
 		stepMap = new EnumMap<UpdateStep, String>(UpdateStep.class);
 		resultResponse = new EnumMap<UpdateStep, Boolean>(UpdateStep.class);
+		this.initResponseDatabase();
 	}
 
 	@Override
@@ -85,24 +88,24 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		insertData(db, "baic", "76D", "7DF", "70D"); /* CAN ID 有待更新 */
 	}
 	
-	public void generateUpdateGeelyDatabase(SQLiteDatabase db){	/* 参照Geely的Bootloader流程 */
+	public void generateUpdateGeelyDatabase(){	/* 参照Geely的Bootloader流程 */
 		System.out.println("generate Geely Database!");
 		stepMap.clear();
 		stepMap.put(UpdateStep.ReadECUHardwareNumber, "22F19362");	/*最后一个byte是积极响应码*/
 		stepMap.put(UpdateStep.ReadBootloaderID, "22F18062");
 		stepMap.put(UpdateStep.RequestToExtendSession, "100350");
 		stepMap.put(UpdateStep.DisableDTCStorage, "8502C5");
-		stepMap.put(UpdateStep.DisableNonDiagComm, "28030168");
+		stepMap.put(UpdateStep.DisableNonDiagComm, "280368");
 		stepMap.put(UpdateStep.RequestToProgrammingSession, "100250");
 		stepMap.put(UpdateStep.RequestSeed, "271167");
 		stepMap.put(UpdateStep.SendKey, "271267");
 		stepMap.put(UpdateStep.WriteTesterSerialNumber, "2EF1986E");
 		stepMap.put(UpdateStep.WriteConfigureData, "2EF1996E");
-		stepMap.put(UpdateStep.RequestDownload, "34004474");
+		stepMap.put(UpdateStep.RequestDownload, "3474");
 		stepMap.put(UpdateStep.TransferData, "360176");
 		stepMap.put(UpdateStep.TransferExit, "3777");
 		stepMap.put(UpdateStep.CheckSum, "3101020271");
-		stepMap.put(UpdateStep.EraseMemory, "3101FF004471");
+		stepMap.put(UpdateStep.EraseMemory, "3101FF0071");
 		stepMap.put(UpdateStep.CheckProgrammDependency, "3101FF0171");
 		stepMap.put(UpdateStep.ResetECU, "110151");
 		stepMap.put(UpdateStep.EnableNonDiagComm, "28000168");
@@ -110,24 +113,24 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		stepMap.put(UpdateStep.RequestToDefaultSession, "100150");
 	}
 	
-	public void generateUpdateForyouDatabase(SQLiteDatabase db){	/* 参照恒润的Bootloader流程 */
+	public void generateUpdateForyouDatabase(){	/* 参照恒润的Bootloader流程 */
 		stepMap.clear();
 		System.out.println("generate Foryou Database!");
 		stepMap.put(UpdateStep.ReadECUSparePartNumber, "22F18762");	/*最后一个byte是积极响应码*/
 		stepMap.put(UpdateStep.RequestToExtendSession, "100350");
 		stepMap.put(UpdateStep.DisableDTCStorage, "8502C5");
-		stepMap.put(UpdateStep.DisableNonDiagComm, "28030168");
+		stepMap.put(UpdateStep.DisableNonDiagComm, "280368");	//remove parameter 01, in addParameter() add it.
 		stepMap.put(UpdateStep.RequestToProgrammingSession, "100250");
 		stepMap.put(UpdateStep.RequestSeed, "270567");
 		stepMap.put(UpdateStep.SendKey, "270667");
 		stepMap.put(UpdateStep.WriteTesterSerialNumber, "2EF1986E");
 		stepMap.put(UpdateStep.WriteECUSparePartNumber, "2EF1876E");
 		stepMap.put(UpdateStep.WriteUpdateDate, "2EF1996E");
-		stepMap.put(UpdateStep.RequestDownload, "34004474");
+		stepMap.put(UpdateStep.RequestDownload, "3474");	//remove parameter 00 44, in addParameter() add it.
 		stepMap.put(UpdateStep.TransferData, "360176");
 		stepMap.put(UpdateStep.TransferExit, "3777");
 		stepMap.put(UpdateStep.CheckSum, "3101F00171");
-		stepMap.put(UpdateStep.EraseMemory, "3101FF004471");
+		stepMap.put(UpdateStep.EraseMemory, "3101FF0071");	//remove parameter 44, in addParameter() add it.
 		stepMap.put(UpdateStep.CheckProgrammCondition, "3101F00071");
 		stepMap.put(UpdateStep.CheckProgrammDependency, "3101FF0171");
 		stepMap.put(UpdateStep.ResetECU, "110151");
@@ -139,7 +142,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		return stepMap;
 	}
 
-	public void initResponseDatabase(SQLiteDatabase db){
+	public void initResponseDatabase(){
 		resultResponse.clear();
 		resultResponse.put(UpdateStep.ReadECUSparePartNumber, null);
 		resultResponse.put(UpdateStep.ReadECUHardwareNumber, null);
@@ -164,6 +167,7 @@ public class CANDatabaseHelper extends SQLiteOpenHelper {
 		resultResponse.put(UpdateStep.EnableNonDiagComm, null);
 		resultResponse.put(UpdateStep.EnableDTCStorage, null);
 		resultResponse.put(UpdateStep.RequestToDefaultSession, null);
+		resultResponse.put(UpdateStep.FlowControl, null);
 	}
 	
 	/*

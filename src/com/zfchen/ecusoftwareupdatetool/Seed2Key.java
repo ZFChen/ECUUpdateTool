@@ -5,7 +5,14 @@ public class Seed2Key implements SecurityAccess {
 	byte key[]  = {0,0,0,0}; /*密钥数组*/
 	byte cal[]  = {0,0,0,0};
 	boolean status_lock = true;
+	String manufacturer;
 	
+	
+	public Seed2Key(String manufacturer) {
+		super();
+		this.manufacturer = manufacturer;
+	}
+
 	public byte[] getKey() {
 		return key;
 	}
@@ -14,11 +21,30 @@ public class Seed2Key implements SecurityAccess {
 	public byte[] generateKey(byte[] seed, byte level) {
 		// TODO Auto-generated method stub
 
-		if(!checkSeed(seed))
-			return getKey();
-		
-		//key_DFSK(seed, level);
-		key_GEELY(seed, level);
+		if(checkSeed(seed)){
+			switch (manufacturer) {
+			//目前 zotye,baic和dfsk三者的升级流程都是参照华阳的软件升级规格书
+			case "zotye":
+				key_ZOTYE(seed, level);
+				break;
+				
+			case "baic":
+				//待定
+				break;
+				
+			case "dfsk":
+				key_DFSK(seed, level);
+				break;
+						
+			case "geely":	//吉利的升级流程参照"吉利的升级规格书"
+				key_GEELY(seed, level);
+				break;
+				
+			default:
+				System.out.println("The manufacturer isn't supported!");
+				break;
+			}
+		}
 		return getKey();
 	}
 	

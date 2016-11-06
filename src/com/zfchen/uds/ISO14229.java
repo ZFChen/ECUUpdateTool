@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Locale;
 
 import android.bluetooth.BluetoothSocket;
@@ -15,6 +16,8 @@ import com.zfchen.dbhelper.CANDatabaseHelper;
 import com.zfchen.dbhelper.CANDatabaseHelper.*;
 import com.zfchen.ecusoftwareupdatetool.Hex2Bin;
 import com.zfchen.ecusoftwareupdatetool.Crc;
+import com.zfchen.ecusoftwareupdatetool.SecurityAccess;
+import com.zfchen.ecusoftwareupdatetool.Seed2Key;
 import com.zfchen.ecusoftwareupdatetool.UpdateActivity.UpdateSoftwareProcess;
 
 public class ISO14229 {
@@ -37,6 +40,8 @@ public class ISO14229 {
 	byte[] fileSize;
 	byte[] startAddress;
 	ReceiveThread receiveThread;
+	EnumMap<UpdateStep, Boolean> result;
+	SecurityAccess securityAccess;
 	
 	public ISO14229(CANDatabaseHelper helper, BluetoothSocket bTsocket, String manufacturer){
 		super();
@@ -44,18 +49,22 @@ public class ISO14229 {
 		helper.generateCanDB(db);
 		
 		if(manufacturer.equals("geely"))
-			helper.generateUpdateGeelyDatabase(db);
+			helper.generateUpdateGeelyDatabase();
 		else
-			helper.generateUpdateForyouDatabase(db);
+			helper.generateUpdateForyouDatabase();
 		
 		this.canDBHelper = helper;
 		this.frame = new ArrayList<Byte>();
 		this.h2b = new Hex2Bin();
 		this.socket = bTsocket;
 		this.manufacturer = manufacturer;
+		this.result = helper.getResultResponse();
 	}
 	
-	
+	public SecurityAccess getSecurityAccess() {
+		return securityAccess;
+	}
+
 	public void setFilePath(String[] filePath) {
 		this.filePath = filePath;
 	}
@@ -91,7 +100,8 @@ public class ISO14229 {
 		response_can_id = canIDList.get(2); //respCANid, 用来过滤从车载CAN网络接收到的报文(考虑将该参数传至下位机，然后由下位机对报文进行过滤)
 		
 		if(step == UpdateStep.RequestDownload || step == UpdateStep.CheckSum || step == UpdateStep.EraseMemory
-				|| step == UpdateStep.WriteUpdateDate){
+				|| step == UpdateStep.WriteUpdateDate || step == UpdateStep.DisableNonDiagComm 
+				|| step == UpdateStep.SendKey){
 			//对于：请求下载、传输数据、校验数据、擦除逻辑块， 这几个服务需要带额外的参数
 			this.addParameter(step, manufac, filePath, message);
 		} else if(step == UpdateStep.TransferData){
@@ -113,7 +123,8 @@ public class ISO14229 {
 		
 		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		int num = iso15765.frameBuffer.getFrame().size();
-			
+		
+		result.put(step, null);	//发送请求前先清除对应的响应
 		for(int i=0; i<num; i++){
 			/*
 			for(int j=0; j<12; j++){
@@ -124,14 +135,36 @@ public class ISO14229 {
 			*/
 			try {
 				outStream.write(iso15765.frameBuffer.getFrame().get(i).data);
-				if((num>1) && (i==0))	//multiple frame
-					Thread.sleep(1);	//等待流控制帧
+				if((num>1) && (i==0)){	//multiple frame
+					System.out.println("wait the flow control frame...");
+					synchronized (result) {
+						result.put(UpdateStep.FlowControl, null);
+						result.wait();//等待流控制帧
+						if((result.get(UpdateStep.FlowControl) == null)||(result.get(UpdateStep.FlowControl) == false))
+							System.out.println("Don't receive the flow control frame!");
+						else
+							result.put(UpdateStep.FlowControl, null);
+					}
+				}
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
+		System.out.println("wait the positive response...");
+		synchronized (result) {
+			try {
+				result.wait();
+				if((result.get(step) == null)||(result.get(step) == false))
+					System.out.println("Don't receive the positive response!");
+				else
+					result.put(step, null);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}//等待
+		}
 		//iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
 		//iso15765.new SendThread(socket, message).start();
 		//发送块数据
@@ -142,6 +175,8 @@ public class ISO14229 {
 		//byte positiveResponse;
 		boolean result = false;
 		UpdateProcess updateProcess;
+		
+		this.securityAccess = new Seed2Key(manufac);
 		
 		switch (manufac) {
 		//目前 zotye,baic和dfsk三者的升级流程都是参照华阳的软件升级规格书
@@ -170,6 +205,7 @@ public class ISO14229 {
 			break;
 		}
 		
+		receiveThread.setStopReceiveMessageFlag(false);	//结束接收线程
 		result = true;
 		return result;
 	}
@@ -224,7 +260,21 @@ public class ISO14229 {
 		}
 		
 		switch(step){//根据不同的诊断服务，加入对应的参数
+		case DisableNonDiagComm:
+			frame.add((byte) 0x01);	//enableRxAndDisableTx 
+				break;
+		
+		case SendKey:
+			byte[] seed = receiveThread.getSeed();
+			byte[] key = this.getSecurityAccess().generateKey(seed, (byte) 5);
+			for (byte b : key) {	//add starting address
+				frame.add(b);
+			}
+			break;
+			
 		case RequestDownload:
+			frame.add((byte) 0x00);	//DataFormatIdentifier(00:表示没有使用加密、解密方法)
+			frame.add((byte) 0x44);	//addressAndLengthFormatIdentifier
 			for (byte b : startAddress) {	//add starting address
 				frame.add(b);
 			}
@@ -240,6 +290,7 @@ public class ISO14229 {
 				break;
 				
 		case EraseMemory:
+			frame.add((byte) 0x44);	//AddressLengthFormatIdentifier
 			for (byte b : startAddress) {	//add starting address
 				frame.add(b);
 			}

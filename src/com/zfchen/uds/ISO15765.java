@@ -23,6 +23,7 @@ public class ISO15765 {
 	
 	final int CAN_frame_message_length = 12;
 	final int message_head = (int)(0xEE&0xFF);
+	boolean flowControlFlag = false;
 	
 	/*-------CAN报文缓冲类定义--------*/
 	public class Item{	//每条数据长度为12个字节，格式为： 0xee(一个起始字节)+CAN ID（2个字节）+数据（8个字节）+校验和（一个字节）
@@ -81,6 +82,14 @@ public class ISO15765 {
 
 	public ArrayList<Byte> getReceiveData() {
 		return receiveData;
+	}
+	
+	public boolean isFlowControlFlag() {
+		return flowControlFlag;
+	}
+
+	public void setFlowControlFlag(boolean flowControlFlag) {
+		this.flowControlFlag = flowControlFlag;
 	}
 
 	/*---------------ISO15765协议的打包算法(应用层-->网络层)------------------*/
@@ -275,52 +284,46 @@ public class ISO15765 {
 		switch(type){//根据不同的传输方式(帧格式)进行处理
 			case 0x00:
 				frameType = ISO15765FrameType.SINGLE_FRAME;//单帧
-					break;
+				break;
 			case 0x10:
 				frameType = ISO15765FrameType.FIRST_FRAME;//第一帧
-					break;
+				break;
 			case 0x20:
 				frameType = ISO15765FrameType.CONSECUTIVE_FRAME;//连续帧
-					break;
+				break;
 			case 0x30:
 				frameType = ISO15765FrameType.FLOW_CONTROL_FRAME;//流控制帧
-					break;
+				break;
 			default:
 				frameType = ISO15765FrameType.INVALID_FRAME;//无效帧
-					break;
+				break;
 		}
 		
 		switch(frameType){
 			case SINGLE_FRAME:
-				/*
-				for(int i = 0;i < CAN_frame_message_length;i++){
-					this.frameBuffer.getFrame().get(0).data[i] = receiveBuffer[i];
-				}
-				*/
 				length = receiveBuffer[3];
 				break;
 				
 			case FLOW_CONTROL_FRAME:
-				/*
-					for(int i = 0;i < 12;i++){
-						this.frameBuffer.getFrame().get(0).data[i] = receiveBuffer[i];
-					}
-					*/
-					break;
+				if((receiveBuffer[3]&0x0f) == 0) //判断流状态
+					this.setFlowControlFlag(true);
+				else
+					this.setFlowControlFlag(false);
+				break;
 					
 			case FIRST_FRAME:	/* 接收到第一帧,需要发送流控制帧 */
-					length = ((receiveBuffer[3]&0x0f)<<8)+receiveBuffer[4];	/* 获取报文（网络层）的数据长度 */
-					//System.out.println("Total receive CAN message length = "+length);
-					Item item = new Item();
-					item.data = SendFlowControlFrame(id);
-					this.SendMessageToDevice(item.data);
-					break;
+				length = ((receiveBuffer[3]&0x0f)<<8)+receiveBuffer[4];	/* 获取报文（网络层）的数据长度 */
+				//System.out.println("Total receive CAN message length = "+length);
+				Item item = new Item();
+				item.data = SendFlowControlFrame(id);
+				this.SendMessageToDevice(item.data);
+				break;
 					
 			case CONSECUTIVE_FRAME:
-					break;
+				break;
 					
 			case INVALID_FRAME:
-					break;
+				break;
 		}
 		return length;
 	}
@@ -357,6 +360,10 @@ public class ISO15765 {
 		CANFrameBuffer buf;
 		//UpdateStep step;
 		CANDatabaseHelper canDBHelper;
+		EnumMap<UpdateStep, Boolean> result;
+		boolean stopReceiveMessageFlag = false;
+		int sn = 1;
+		byte seed[] = new byte[4];
 		
 		public ReceiveThread(BluetoothSocket socket, CANDatabaseHelper helper) {
 			super();
@@ -364,6 +371,7 @@ public class ISO15765 {
 			this.socket = socket;
 			//this.step = st;
 			this.canDBHelper = helper;
+			this.result = helper.getResultResponse();
 			try{
 				inStream = socket.getInputStream();
 			}catch(IOException e){
@@ -376,6 +384,14 @@ public class ISO15765 {
 			// TODO Auto-generated method stub
 			super.start();
 		}
+		
+		public byte[] getSeed() {
+			return seed;
+		}
+
+		public void setStopReceiveMessageFlag(boolean stopReceiveMessageFlag) {
+			this.stopReceiveMessageFlag = stopReceiveMessageFlag;
+		}
 
 		@Override
 		public void run() {
@@ -387,7 +403,7 @@ public class ISO15765 {
 			//int num = 0;
 			buf = new CANFrameBuffer();
 			//int id = 0;
-			boolean stopReceiveMessageFlag = true;
+			stopReceiveMessageFlag = true;
 			/*
 			while(num < 12){
 				try{
@@ -430,11 +446,11 @@ public class ISO15765 {
 			*/
 			while(stopReceiveMessageFlag){
 				tempBuffer = readCANMessage(response_can_id, inStream);
-				System.out.printf("readCANMessage = ");
-				for (Byte b : tempBuffer) {
-					System.out.printf("%2h ", (int)(b&0xFF));
-				}
-				System.out.println();
+//				System.out.printf("readCANMessage = ");
+//				for (Byte b : tempBuffer) {
+//					System.out.printf("%2h ", (int)(b&0xFF));
+//				}
+//				System.out.println();
 				
 				int length = ReceiveNetworkFrameHandle(tempBuffer, request_can_id);
 				Item item = new Item();
@@ -443,38 +459,31 @@ public class ISO15765 {
 				buf.getFrame().clear();
 				buf.getFrame().add(item);
 				
-				if(length <= 7){
-					//single frame
-				}else {
+				if(length <= 7){	//single frame
+					
+				}else {	//multiple frame
 					//根据报文的数据长度, 计算报文的帧数
 					int sn = (length-6)/7;	/* 第一帧的数据长度为6个字节，后面连续帧的数据长度为7个字节 */
 					if((length-6)%7 == 0){
-						sn = sn + 1;
+						sn = sn + 1;	//报文的总帧数 = 连续帧数量 + 第一帧
 					}else{
-						sn = sn + 2;
+						sn = sn + 2;	//最后一帧的数据长度不足7个字节
 					}
-					for(int i=0; i<sn; i++){
-						/*
-						if(id == response_can_id){	//流控制帧不能存入接收数据缓存中
-							try {
-								inStream.read(tempBuffer);
-								Item it = new Item();
-								it.data = tempBuffer.clone();
-								buf.getFrame().add(it);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-						*/
+					for(int i=0; i<sn-1; i++){	//读取所有的连续帧
 						tempBuffer = readCANMessage(response_can_id, inStream);
 						Item it = new Item();
 						it.data = tempBuffer.clone();
 						buf.getFrame().add(it);
 					}
 				}
-				if(tempBuffer[3] == (byte)0x30) //接收到流控帧
-					this.notify();	//唤醒其他线程
+				
+				if(isFlowControlFlag()){ //接收到流控帧
+					synchronized (result) {
+						result.put(UpdateStep.FlowControl, true);
+						result.notify();	//唤醒其他线程
+						continue;
+					}
+				}
 				
 				receiveData = UnPackCANFrameData(buf);	//返回接收到的数据
 				
@@ -491,40 +500,67 @@ public class ISO15765 {
 				for (UpdateStep step : stepMap.keySet()) {	//遍历map对象
 					message = canDBHelper.getCANMessage(step);
 					message.set(0, (byte)(message.get(0)+0x40));	//请求id号+0x40 = 积极响应码
-					
-					System.out.printf("%2h , %2h \n", (int)message.get(0), receiveData.get(0));
-					
+									
+//					System.out.printf("%2h , %2h \n", (int)message.get(0), receiveData.get(0));
+					/*
 					if(receiveData.get(0) == message.get(0)){
 						int i = message.size();
-						if(i>2){
-							if(message.get(i-2) == message.get(i-2)){	//对于有子功能号的服务，需要识别是哪个一子功能
-								canDBHelper.getResultResponse().put(step, true);//设置对应的响应状态
+						synchronized (result) {
+							if(i>2){
+								int sum = 0;
+								for(int j=1; j<i-1; j++){	//从1到i-2, get(i-1)为积极响应码
+									sum += receiveData.get(i) - message.get(i);
+								}
+								
+								if(sum == 0){//对于有子功能号的服务，需要识别是哪个一子功能
+//								if( receiveData.get(1) == message.get(1) &&
+//									receiveData.get(i-2) == message.get(i-2) ){
+									result.put(step, true);//设置对应的响应状态
+									result.notify();
+									break;
+								}
+							}else{
+								result.put(step, true);
+								result.notify();
 								break;
-							} else {
-								System.out.println("don't support the sub-function!");
 							}
-						}else{
-							canDBHelper.getResultResponse().put(step, true);
-							break;
+						}
+					}
+				}*/
+					int i = message.size();	
+					int sum = 0;
+					// 遍历各请求报文对应的响应时，如果出现请求报文较长，而接收到的响应长度较短的情况，会出现空指针异常
+					if(receiveData.get(0) == message.get(0)){
+						if(receiveData.get(0) == 0x76){	//transfer data
+							if(receiveData.get(1) == 0x01)
+								sn = 1;
+							else{
+								sn++;
+								if(sn>0xFF)
+									sn = 0;
+							}
+							message.set(1, (byte)(sn&0xFF));
+						}
+						
+						if(receiveData.get(0) == 0x67){
+							if(receiveData.get(1) == 0x05){//request seed
+								for(int k=0; k<4; k++)
+								this.seed[k] = receiveData.get(k+2);
+							}
+						}
+						
+						for(int j=0; j<i-1; j++){	//从0到i-2, get(i-1)为积极响应码
+							sum += receiveData.get(j) - message.get(j);
+						}
+						if(sum == 0){//对于有子功能号的服务，需要识别是哪个一子功能
+							synchronized (result) {
+								result.put(step, true);//设置对应的响应状态
+								result.notify();
+								break;
+							}
 						}
 					}
 				}
-				
-				/*
-				message = canDBHelper.getCANMessage(step);
-				message.set(0, (byte)(message.get(0)+0x40));	//请求id号+0x40 = 积极响应码
-				
-				if(receiveData.get(0) == message.get(0)){	//响应码相同
-					int i = message.size();
-					if(i>2){
-						if(message.get(i-2) == message.get(i-2))	//对于有子功能号的服务，需要识别是哪个一子功能
-							canDBHelper.getResultResponse().put(step, true);//设置对应的响应状态
-					}else
-						canDBHelper.getResultResponse().put(step, true);
-				}
-				else
-					canDBHelper.getResultResponse().put(step, false);
-				*/
 			}
 		}
 	}
@@ -604,83 +640,6 @@ public class ISO15765 {
 		return message;
 	}
 	
-	
-	public class SendThread extends Thread{
-		BluetoothSocket socket;
-		OutputStream outStream;
-		ArrayList<Byte> receiveData;
-		CANFrameBuffer buf;
-		boolean flag = true;
-		
-		public SendThread(BluetoothSocket socket, ArrayList<Byte> output) {
-			super();
-			// TODO Auto-generated constructor stub
-			this.socket = socket;
-			sendData = output;
-			/*
-			try{
-				outStream = socket.getOutputStream();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-			*/
-		}
-
-		public void setFlag(boolean flag) {
-			this.flag = flag;
-		}
-
-		@Override
-		public synchronized void start() {
-			// TODO Auto-generated method stub
-			super.start();
-		}
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			super.run();
-			while(flag == true){
-				buf = new CANFrameBuffer();
-				PackCANFrameData(sendData, buf, request_can_id);
-				
-				//byte[] tempBuffer = new byte[12];
-				int num = buf.getFrame().size();
-				/*
-				try{
-					outStream.write(buf.getFrame().get(0).data);	// 发送第一帧/单帧
-					
-					ReceiveThread receiveThread = new ReceiveThread(socket);
-					receiveThread.start();
-					
-					if(num > 1){	//对于多帧传输,发送在第一帧之后需要等待接收流控制帧
-						wait();
-						for(int i=1; i<=num-1; i++)
-							outStream.write(buf.getFrame().get(i).data);
-					}
-	
-				}catch(IOException | InterruptedException e){
-					e.printStackTrace();
-				}
-				*/
-				for(int j=0; j<num; j++){
-					for(int i=0; i<12; i++){
-						int a = (int)(buf.getFrame().get(j).data[i]&0xFF);
-						System.out.printf("%2h ", a);
-					}
-					System.out.println();
-				}
-				/*
-				try {
-					wait();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				*/
-			}
-		}
-	}
 	
 	static void outputTest(CANFrameBuffer buf){
 		int num = buf.getFrame().size();

@@ -52,7 +52,7 @@ public class OpenFileDialog {
 		
 		private CallbackBundle callback = null;
 		//private String path = sRoot;
-		private String path = Environment.getExternalStorageDirectory().getPath()+"//XML版的诊断仪SD卡文件//";
+		private String path = Environment.getExternalStorageDirectory().getPath()+"//升级文件//";
 		private List<Map<String, Object>> list = null;
 		private int dialogid = 0;
 		private String suffix = null;
