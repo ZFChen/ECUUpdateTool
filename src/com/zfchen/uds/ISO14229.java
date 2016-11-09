@@ -75,8 +75,9 @@ public class ISO14229 {
 	 * @param filePath 升级文件的路径
 	 * @return
 	 */
-	protected byte requestDiagService(UpdateStep step, String manufac, String filePath){	//ReadECUHardwareNumber
-		byte positiveCode = 0;	/* 返回该报文对应的积极响应码  */
+	protected boolean requestDiagService(UpdateStep step, String manufac, String filePath){	//ReadECUHardwareNumber
+		
+		boolean response = false;	/* 返回该报文对应的响应结果  */
 		OutputStream outStream = null;
 		ArrayList<Byte> message = canDBHelper.getCANMessage(step);
 		
@@ -85,8 +86,8 @@ public class ISO14229 {
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-		positiveCode = message.get(message.size()-1);	//取出积极响应码
-		message.remove(message.size()-1);
+		
+		message.remove(message.size()-1);//移除积极响应码
 		
 		ArrayList<Integer> canIDList = canDBHelper.getCANID(db, manufac);
 		
@@ -100,8 +101,9 @@ public class ISO14229 {
 		response_can_id = canIDList.get(2); //respCANid, 用来过滤从车载CAN网络接收到的报文(考虑将该参数传至下位机，然后由下位机对报文进行过滤)
 		
 		if(step == UpdateStep.RequestDownload || step == UpdateStep.CheckSum || step == UpdateStep.EraseMemory
-				|| step == UpdateStep.WriteUpdateDate || step == UpdateStep.DisableNonDiagComm 
-				|| step == UpdateStep.SendKey){
+				|| step == UpdateStep.SendKey || step == UpdateStep.DisableNonDiagComm 
+				|| step == UpdateStep.WriteUpdateDate || step == UpdateStep.WriteECUSparePartNumber
+				|| step == UpdateStep.WriteTesterSerialNumber ){
 			//对于：请求下载、传输数据、校验数据、擦除逻辑块， 这几个服务需要带额外的参数
 			this.addParameter(step, manufac, filePath, message);
 		} else if(step == UpdateStep.TransferData){
@@ -109,67 +111,21 @@ public class ISO14229 {
 			//message.addAll(this.data);
 			System.out.println("the length of file transfered is " + this.data.size());
 			this.transferFile(MaxBlockLength, this.data, this.socket, request_can_id);
-			return positiveCode;
+			return response;
 		}
 		
 		this.iso15765 = new ISO15765(this.socket, request_can_id, response_can_id);
-		//发送块数据
-		//iso15765.new SendThread(socket, message).start();
 		
 		if(receiveThread == null){
 			receiveThread = iso15765.new ReceiveThread(this.socket, this.canDBHelper);
 			receiveThread.start();
 		}
 		
-		iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
-		int num = iso15765.frameBuffer.getFrame().size();
+		response = sendCANNetworkFrame(outStream, message, step);
 		
-		result.put(step, null);	//发送请求前先清除对应的响应
-		for(int i=0; i<num; i++){
-			/*
-			for(int j=0; j<12; j++){
-				int a = (int)(iso15765.frameBuffer.getFrame().get(i).data[j]&0xFF);
-				System.out.printf("%2h ", a);
-			}
-			System.out.println();
-			*/
-			try {
-				outStream.write(iso15765.frameBuffer.getFrame().get(i).data);
-				if((num>1) && (i==0)){	//multiple frame
-					System.out.println("wait the flow control frame...");
-					synchronized (result) {
-						result.put(UpdateStep.FlowControl, null);
-						result.wait();//等待流控制帧
-						if((result.get(UpdateStep.FlowControl) == null)||(result.get(UpdateStep.FlowControl) == false))
-							System.out.println("Don't receive the flow control frame!");
-						else
-							result.put(UpdateStep.FlowControl, null);
-					}
-				}
-			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		System.out.println("wait the positive response...");
-		synchronized (result) {
-			try {
-				result.wait();
-				if((result.get(step) == null)||(result.get(step) == false))
-					System.out.println("Don't receive the positive response!");
-				else
-					result.put(step, null);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}//等待
-		}
-		//iso15765.PackCANFrameData(message, iso15765.frameBuffer, request_can_id);
-		//iso15765.new SendThread(socket, message).start();
-		//发送块数据
-		return positiveCode;
+		return response;
 	}
+	
 	
 	public boolean update(String manufac, String[] filePathList, UpdateSoftwareProcess step){
 		//byte positiveResponse;
@@ -182,22 +138,22 @@ public class ISO14229 {
 		//目前 zotye,baic和dfsk三者的升级流程都是参照华阳的软件升级规格书
 		case "zotye":
 			updateProcess = new ForyouUpdateProcess(this, filePathList, manufac);
-			updateProcess.update();
+			result = updateProcess.update();
 			break;
 			
 		case "baic":
 			updateProcess = new ForyouUpdateProcess(this, filePathList, manufac);
-			updateProcess.update();
+			result = updateProcess.update();
 			break;
 			
 		case "dfsk":
 			updateProcess = new ForyouUpdateProcess(this, filePathList, manufac);
-			updateProcess.update();
+			result = updateProcess.update();
 			break;
 					
 		case "geely":	//吉利的升级流程参照"吉利的升级规格书"
 			updateProcess = new GeelyUpdateProcess(this, filePathList, manufac);
-			updateProcess.update();
+			result = updateProcess.update();
 			break;
 			
 		default:
@@ -206,7 +162,6 @@ public class ISO14229 {
 		}
 		
 		receiveThread.setStopReceiveMessageFlag(false);	//结束接收线程
-		result = true;
 		return result;
 	}
 	
@@ -300,7 +255,6 @@ public class ISO14229 {
 				break;
 		
 		case WriteUpdateDate:
-			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd",Locale.CHINA);	//获取系统时间,需要加上位置信息(Locale)
 			byte[] temp_data = sdf.format(new java.util.Date()).substring(2).getBytes();	/*ASC II格式的日期(例如：20161031)*/
 			byte[] data = new byte[3];
@@ -321,6 +275,21 @@ public class ISO14229 {
 				frame.add(b);
 			}
 				break;
+				
+				
+		case WriteECUSparePartNumber:
+			byte[] partNum = "0123456789abcde".getBytes();
+			for (byte c : partNum) {
+				frame.add(c);
+			}
+			break;
+			
+		case WriteTesterSerialNumber:
+			byte[] serialNum = "0123456789".getBytes();
+			for (byte c : serialNum) {
+				frame.add(c);
+			}
+			break;
 				
 		default:
 				break;
@@ -351,41 +320,17 @@ public class ISO14229 {
 			blockFrame.add(SID);	//添加诊断服务ID
 			blockFrame.add(blockNumInitial++); //添加块号（块号循环:第一次是从1开始计数，自增到FF后，再从0开始循环计数，这里采用byte类型，溢出后自动变为0）
 			
-			for(int j=0; j<(maxBlockLength-2); j++){	//取出一个数据块的内容
-				blockFrame.add(transferData.get(j+(i*(maxBlockLength-2))));
-			}
-			/*
-			iso15765.setSendData(blockFrame);
-			if(sendThread.getState() == Thread.State.NEW)
-				sendThread.start();
-			else if(sendThread.getState() == Thread.State.WAITING)
-				sendThread.notifyAll();
-			*/
-			
-			//发送块数据
-			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
 			try{
 				outStream = this.socket.getOutputStream();
 			}catch(IOException e){
 				e.printStackTrace();
 			}
-			int num = iso15765.frameBuffer.getFrame().size();
-			for(int k=0; k<num; k++){
-				/*
-				for(int m=0; m<12; m++){
-					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
-					System.out.printf("%2h ", a);
-				}
-				System.out.println();
-				*/
-				//将数据写入流中——发送数据
-				try {
-					outStream.write(iso15765.frameBuffer.getFrame().get(k).data);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			
+			for(int j=0; j<(maxBlockLength-2); j++){	//取出一个数据块的内容
+				blockFrame.add(transferData.get(j+(i*(maxBlockLength-2))));
 			}
+			
+			sendCANNetworkFrame(outStream, blockFrame, UpdateStep.TransferData);
 		}
 		
 		int lastBlockLength = dataLength%(maxBlockLength-2); //将最后一个数据块的内容提取出来(最后一个数据块长度不足maxBlockLength)
@@ -397,117 +342,70 @@ public class ISO14229 {
 				blockFrame.add(transferData.get(dataLength-lastBlockLength+i));
 			}
 			
-			/*
-			iso15765.setSendData(blockFrame);
-			if(sendThread.getState() == Thread.State.NEW)
-				sendThread.start();
-			else if(sendThread.getState() == Thread.State.WAITING)
-				sendThread.notifyAll();
-			
-			sendThread.setFlag(false);
-			*/
-			
-			//iso15765.new SendThread(socket, blockFrame).start();
-			iso15765.PackCANFrameData(blockFrame, iso15765.frameBuffer, request_can_id);
-			int num = iso15765.frameBuffer.getFrame().size();
-			for(int k=0; k<num; k++){
-//				for(int m=0; m<12; m++){
-//					int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
-//					System.out.printf("%2h ", a);
-//				}
-//				System.out.println();
-				
-				//将数据写入流中——发送数据
-				try {
-					outStream.write(iso15765.frameBuffer.getFrame().get(k).data);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
+			sendCANNetworkFrame(outStream, blockFrame, UpdateStep.TransferData);
 		}
 	}
-	
-	
-	/*
-	public class SendThread extends Thread{
-		BluetoothSocket socket;
-		OutputStream outStream;
-		InputStream inStream;
-		ArrayList<Byte> receiveData;
-		ArrayList<Byte> sendData;
-		CANFrameBuffer buf;
-		boolean flag = true;
+
+	/**
+	 * @param outStream
+	 * @param frame
+	 */
+	protected boolean sendCANNetworkFrame(OutputStream outStream,
+			ArrayList<Byte> frame, UpdateStep step) {
 		
-		String[] filePathList;
-		UpdateSoftwareProcess step;
+		//发送请求前先清除对应的响应
+		result.put(step, null);
 		
-		public SendThread(BluetoothSocket socket, ArrayList<Byte> output, String[] filePath) {
-			super();
-			// TODO Auto-generated constructor stub
-			this.socket = socket;
-			this.sendData = output;
-			this.filePathList = filePath;
-			
-			try{
-				this.outStream = socket.getOutputStream();
-				this.inStream  = socket.getInputStream();
-			}catch(IOException e){
+		//发送块数据
+		iso15765.PackCANFrameData(frame, iso15765.frameBuffer, request_can_id);
+		int num = iso15765.frameBuffer.getFrame().size();
+		for(int k=0; k<num; k++){
+			/*
+			for(int m=0; m<12; m++){
+				int a = (int)(iso15765.frameBuffer.getFrame().get(k).data[m]&0xFF);
+				System.out.printf("%2h ", a);
+			}
+			System.out.println();
+			*/
+			//将数据写入流中——发送数据
+			try {
+				outStream.write(iso15765.frameBuffer.getFrame().get(k).data);
+				
+				if((num>1) && (k==0)){	//multiple frame
+					System.out.println("wait the flow control frame...");
+					synchronized (result) {
+						result.put(UpdateStep.FlowControl, null);
+						result.wait(1000);//等待流控制帧
+						if((result.get(UpdateStep.FlowControl) == null)||(result.get(UpdateStep.FlowControl) == false))
+							return false;
+							//System.out.println("Don't receive the flow control frame!");
+						else
+							result.put(UpdateStep.FlowControl, null);
+					}
+				}
+				
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
 		}
-
-		public void setFlag(boolean flag) {
-			this.flag = flag;
+		
+		System.out.println("wait the positive response...");
+		synchronized (result) {
+			try {
+				result.wait(1000);
+				if((result.get(step) == null)||(result.get(step) == false))
+					return false;
+					//System.out.println("Don't receive the positive response!");
+				else
+					result.put(step, null);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}//等待
 		}
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			super.run();
-			while(flag == true){
-				buf = iso15765.new CANFrameBuffer();
-				iso15765.PackCANFrameData(sendData, buf, request_can_id);
-				
-				byte[] tempBuffer = new byte[12];
-				int num = buf.getFrame().size();
-				
-				try{
-					outStream.write(buf.getFrame().get(0).data);	// 发送第一帧/单帧
-					num += inStream.read(tempBuffer); //每次读取最多12个字节, 返回实际读取到的字节数 
-					if(num < 12)
-						id = (int)((tempBuffer[1]<<8)|tempBuffer[2]);
-					
-					if(num > 1){	//对于多帧传输,发送在第一帧之后需要等待接收流控制帧
-						//wait();
-						for(int i=1; i<=num-1; i++){
-							outStream.write(buf.getFrame().get(i).data);
-							sleep(1);	//sleep 1 ms
-						}
-					}
-	
-				}catch(IOException | InterruptedException e){
-					e.printStackTrace();
-				}
-
-				for(int j=0; j<num; j++){
-					for(int i=0; i<12; i++){
-						int a = (int)(buf.getFrame().get(j).data[i]&0xFF);
-						System.out.printf("%2h ", a);
-					}
-					System.out.println();
-				}
-				try {
-					wait();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
+		
+		return true;
 	}
-	*/
 	
 }

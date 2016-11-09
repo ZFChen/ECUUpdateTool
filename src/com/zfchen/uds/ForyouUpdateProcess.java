@@ -14,107 +14,176 @@ public class ForyouUpdateProcess implements UpdateProcess {
 		this.manufacturer = manu;
 	}
 
+	
 	@Override
 	public boolean readInfoFromECU() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.RequestToExtendSession, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.ReadECUSparePartNumber, "zotye", null);	//22 F1 87
-		return false;
+		boolean result = false;
+		result = iso14229.requestDiagService(UpdateStep.RequestToExtendSession, manufacturer, null);
+		if(result == true)
+			result = iso14229.requestDiagService(UpdateStep.ReadECUSparePartNumber, "zotye", null);	//22 F1 87
+		return result;
 	}
 
+	
 	@Override
 	public boolean PreProgrammSessionControl() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.CheckProgrammCondition, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.DisableDTCStorage, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.DisableNonDiagComm, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.RequestToProgrammingSession, manufacturer, null);
-		return false;
+		boolean result = false;
+		result = iso14229.requestDiagService(UpdateStep.CheckProgrammCondition, manufacturer, null);
+		if(result == true){
+			result = iso14229.requestDiagService(UpdateStep.DisableDTCStorage, manufacturer, null);
+			if(result == true){
+				result = iso14229.requestDiagService(UpdateStep.DisableNonDiagComm, manufacturer, null);
+				if(result == true){
+					result = iso14229.requestDiagService(UpdateStep.RequestToProgrammingSession, manufacturer, null);
+				}
+			}
+		}
+
+		return result;
 	}
 
+	
 	@Override
 	public boolean writeInfoToECU() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.WriteECUSparePartNumber, manufacturer, null);	//2E F1 87
-		iso14229.requestDiagService(UpdateStep.WriteTesterSerialNumber, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.WriteUpdateDate, manufacturer, null);	//写入升级日期(需要加入日期，格式为：16 08 29)
-		return false;
+		boolean result = false;
+		result = iso14229.requestDiagService(UpdateStep.WriteECUSparePartNumber, manufacturer, null);	//2E F1 87
+		if(result == true){
+			result = iso14229.requestDiagService(UpdateStep.WriteTesterSerialNumber, manufacturer, null);
+			if(result == true){
+				result = iso14229.requestDiagService(UpdateStep.WriteUpdateDate, manufacturer, null);	//写入升级日期(需要加入日期，格式为：16 08 29)
+			}
+		}
+		
+		return result;
 	}
 
 	@Override
 	public boolean securityAccess() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.RequestSeed, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.SendKey, manufacturer, null);
-		return false;
+		boolean result = false;
+		result = iso14229.requestDiagService(UpdateStep.RequestSeed, manufacturer, null);
+		if(result == true)
+			result = iso14229.requestDiagService(UpdateStep.SendKey, manufacturer, null);
+		
+		return result;
 	}
 
+	
 	@Override
 	public boolean downloadDriverFile(String filePath) {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.RequestDownload, manufacturer, filePath);
-		iso14229.requestDiagService(UpdateStep.TransferData, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.TransferExit, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.CheckSum, manufacturer, null);
+		boolean result = false;
+		result = iso14229.requestDiagService(UpdateStep.RequestDownload, manufacturer, filePath);
+		if(result == true){
+			result = iso14229.requestDiagService(UpdateStep.TransferData, manufacturer, null);
+			if(result == true){
+				result = iso14229.requestDiagService(UpdateStep.TransferExit, manufacturer, null);
+				if(result == true){
+					result = iso14229.requestDiagService(UpdateStep.CheckSum, manufacturer, null);
+				}
+			}
+		}
 		
 		return false;
 	}
 
+	
 	@Override
 	public boolean downloadCalibrationFile(String filePath) {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.EraseMemory, manufacturer, filePath);
-		iso14229.requestDiagService(UpdateStep.RequestDownload, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.TransferData, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.TransferExit, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.CheckSum, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.CheckProgrammDependency, manufacturer, null);
-		return false;
+		if( iso14229.requestDiagService(UpdateStep.EraseMemory, manufacturer, filePath) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.RequestDownload, manufacturer, null) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.TransferData, manufacturer, null) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.TransferExit, manufacturer, null) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.CheckSum, manufacturer, null) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.CheckProgrammDependency, manufacturer, null) == false )
+			return false;
+		
+		return true;
 	}
 	
 	@Override
 	public boolean downloadApplicationFile(String filePath) {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.EraseMemory, manufacturer, filePath);
-		iso14229.requestDiagService(UpdateStep.RequestDownload, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.TransferData, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.TransferExit, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.CheckSum, manufacturer, null);
-		return false;
+		if( iso14229.requestDiagService(UpdateStep.EraseMemory, manufacturer, filePath) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.RequestDownload, manufacturer, filePath) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.TransferData, manufacturer, filePath) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.TransferExit, manufacturer, filePath) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.CheckSum, manufacturer, filePath) == false )
+			return false;
+		
+		return true;
 	}
 
 	@Override
 	public boolean resetECU() {
 		// TODO Auto-generated method stub
-		iso14229.requestDiagService(UpdateStep.ResetECU, manufacturer, null);
-		iso14229.requestDiagService(UpdateStep.RequestToDefaultSession, manufacturer, null);
-		return false;
+		if( iso14229.requestDiagService(UpdateStep.ResetECU, manufacturer, null) == false )
+			return false;
+		
+		if( iso14229.requestDiagService(UpdateStep.RequestToDefaultSession, manufacturer, null) == false )
+			return false;
+		
+		return true;
 	}
 
 	@Override
 	public boolean ExitProgrammSessionControl() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean update() {
 		// TODO Auto-generated method stub
-		this.readInfoFromECU();
-		this.PreProgrammSessionControl();
-		this.securityAccess();
+		if (this.readInfoFromECU() == false)
+			return false;
+		
+		if(this.PreProgrammSessionControl() == false)
+			return false;
+		
+		if(this.securityAccess() == false)
+			return false;
+		
 		// 0:driver, 1:application, 2:calibration data
-		this.downloadDriverFile(this.filename[0]);
+		if(this.downloadDriverFile(this.filename[0]) == false)
+			return false;
 		
 		if(this.filename[1] != null)
-			this.downloadApplicationFile(this.filename[1]);
-		if(this.filename[2] != null)
-			this.downloadCalibrationFile(this.filename[2]);
+			if(this.downloadApplicationFile(this.filename[1]) == false)
+				return false;
 		
-		this.writeInfoToECU();
+		if(this.filename[2] != null)
+			if(this.downloadCalibrationFile(this.filename[2]) == false)
+				return false;
+		
+		if(this.writeInfoToECU() == false)
+			return false;
+		
 		this.resetECU();
 		
-		return false;
+		return true;
 	}
 	
 	

@@ -98,19 +98,19 @@ public class GeelyUpdateProcess implements UpdateProcess {
 	public boolean update() {
 		// TODO Auto-generated method stub
 		this.readInfoFromECU();
-		System.out.println("readInfoFromECU");
+		//System.out.println("readInfoFromECU");
 		
 		this.PreProgrammSessionControl();
-		System.out.println("PreProgrammSessionControl");
+		//System.out.println("PreProgrammSessionControl");
 		
 		this.securityAccess();
-		System.out.println("securityAccess");
+		//System.out.println("securityAccess");
 		
 		this.writeInfoToECU();
-		System.out.println("writeInfoToECU");
+		//System.out.println("writeInfoToECU");
 		
 		this.downloadDriverFile(this.filename[0]);
-		System.out.println("downloadDriverFile");
+		//System.out.println("downloadDriverFile");
 		
 		if(this.filename[1] != null)
 			this.downloadApplicationFile(this.filename[1]);

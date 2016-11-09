@@ -481,6 +481,7 @@ public class ISO15765 {
 					synchronized (result) {
 						result.put(UpdateStep.FlowControl, true);
 						result.notify();	//唤醒其他线程
+						setFlowControlFlag(false);
 						continue;
 					}
 				}
@@ -575,10 +576,10 @@ public class ISO15765 {
 		while (readBytes < len) {
 			try {
 				num = is.read(message, readBytes, len-readBytes);
-				System.out.printf("num = %d, readBytes = %d\n", num, readBytes);
-				for(int i=readBytes; i<(num+readBytes); i++)
-					System.out.printf("%2h ", (int)(message[i]&0xFF));
-				System.out.println();
+//				System.out.printf("num = %d, readBytes = %d\n", num, readBytes);
+//				for(int i=readBytes; i<(num+readBytes); i++)
+//					System.out.printf("%2h ", (int)(message[i]&0xFF));
+//				System.out.println();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
