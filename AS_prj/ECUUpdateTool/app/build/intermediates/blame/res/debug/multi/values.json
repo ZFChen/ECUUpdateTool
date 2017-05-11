@@ -1,0 +1,353 @@
+[
+    {
+        "outputFile": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values\\values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 57,
+                    "endOffset": 108
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\dimens.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 92,
+                        "endColumn": 57,
+                        "endOffset": 145
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 113,
+                    "endColumn": 55,
+                    "endOffset": 164
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\dimens.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 151,
+                        "endColumn": 55,
+                        "endOffset": 202
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 169,
+                    "endColumn": 52,
+                    "endOffset": 217
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 731,
+                        "endColumn": 52,
+                        "endOffset": 779
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 222,
+                    "endColumn": 45,
+                    "endOffset": 263
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 563,
+                        "endColumn": 45,
+                        "endOffset": 604
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 268,
+                    "endColumn": 58,
+                    "endOffset": 322
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 58,
+                        "endColumn": 58,
+                        "endOffset": 112
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 327,
+                    "endColumn": 49,
+                    "endOffset": 372
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 360,
+                        "endColumn": 49,
+                        "endOffset": 405
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 377,
+                    "endColumn": 55,
+                    "endOffset": 428
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 507,
+                        "endColumn": 55,
+                        "endOffset": 558
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 433,
+                    "endColumn": 40,
+                    "endOffset": 469
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 272,
+                        "endColumn": 40,
+                        "endOffset": 308
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 474,
+                    "endColumn": 46,
+                    "endOffset": 516
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 313,
+                        "endColumn": 46,
+                        "endOffset": 355
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 11,
+                    "startColumn": 4,
+                    "startOffset": 521,
+                    "endColumn": 48,
+                    "endOffset": 565
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 458,
+                        "endColumn": 48,
+                        "endOffset": 502
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 12,
+                    "startColumn": 4,
+                    "startOffset": 570,
+                    "endColumn": 47,
+                    "endOffset": 613
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 410,
+                        "endColumn": 47,
+                        "endOffset": 453
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 13,
+                    "startColumn": 4,
+                    "startOffset": 618,
+                    "endColumn": 50,
+                    "endOffset": 664
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 117,
+                        "endColumn": 50,
+                        "endOffset": 163
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 669,
+                    "endColumn": 55,
+                    "endOffset": 720
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 168,
+                        "endColumn": 55,
+                        "endOffset": 219
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 15,
+                    "startColumn": 4,
+                    "startOffset": 725,
+                    "endColumn": 76,
+                    "endOffset": 797
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 654,
+                        "endColumn": 76,
+                        "endOffset": 726
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 16,
+                    "startColumn": 4,
+                    "startOffset": 802,
+                    "endColumn": 44,
+                    "endOffset": 842
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 609,
+                        "endColumn": 44,
+                        "endOffset": 649
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 17,
+                    "startColumn": 4,
+                    "startOffset": 847,
+                    "endColumn": 47,
+                    "endOffset": 890
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 224,
+                        "endColumn": 47,
+                        "endOffset": 267
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 895,
+                    "endLine": 24,
+                    "endColumn": 12,
+                    "endOffset": 1181
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\styles.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 191,
+                        "endLine": 12,
+                        "endColumn": 12,
+                        "endOffset": 481
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 25,
+                    "startColumn": 4,
+                    "startOffset": 1186,
+                    "endLine": 28,
+                    "endColumn": 12,
+                    "endOffset": 1400
+                },
+                "from": {
+                    "file": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\values\\styles.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 522,
+                        "endLine": 18,
+                        "endColumn": 12,
+                        "endOffset": 739
+                    }
+                }
+            }
+        ]
+    }
+]

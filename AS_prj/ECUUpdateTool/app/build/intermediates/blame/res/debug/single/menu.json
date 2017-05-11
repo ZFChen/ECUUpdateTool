@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\menu\\main.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\menu\\main.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\menu\\manufacturer.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\menu\\manufacturer.xml"
+    }
+]

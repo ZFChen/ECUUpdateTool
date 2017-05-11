@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\device_list.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\device_list.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\disconnect_warning.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\disconnect_warning.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\custom_list_item.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\custom_list_item.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\update_software.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\update_software.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\custom_title.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\custom_title.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\filedialogitem.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\filedialogitem.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\activity_main.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\layout\\activity_manufacturer.xml",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\layout\\activity_manufacturer.xml"
+    }
+]

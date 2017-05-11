@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\dfsk.jpg",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\drawable-hdpi\\dfsk.jpg"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\zotye.jpg",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\drawable-hdpi\\zotye.jpg"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\geely.jpg",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\drawable-hdpi\\geely.jpg"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\baic.jpg",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\drawable-hdpi\\baic.jpg"
+    },
+    {
+        "merged": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\great_wall.jpg",
+        "source": "E:\\Workspace\\github\\ECUUpdateTool\\AS_prj\\ECUUpdateTool\\app\\src\\main\\res\\drawable-hdpi\\great_wall.jpg"
+    }
+]

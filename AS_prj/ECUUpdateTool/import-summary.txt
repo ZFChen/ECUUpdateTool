@@ -1,0 +1,142 @@
+ECLIPSE ANDROID PROJECT IMPORT SUMMARY
+======================================
+
+Ignored Files:
+--------------
+The following files were *not* copied into the new Gradle project; you
+should evaluate whether these are still needed in your project and if
+so manually move them:
+
+* AS_prj\
+* AS_prj\ECUUpdateTool\
+* AS_prj\ECUUpdateTool\.idea\
+* AS_prj\ECUUpdateTool\.idea\compiler.xml
+* AS_prj\ECUUpdateTool\.idea\copyright\
+* AS_prj\ECUUpdateTool\.idea\copyright\profiles_settings.xml
+* AS_prj\ECUUpdateTool\.idea\misc.xml
+* AS_prj\ECUUpdateTool\.idea\workspace.xml
+* AS_prj\ECUUpdateTool\app\
+* AS_prj\ECUUpdateTool\app\build.gradle
+* AS_prj\ECUUpdateTool\app\src\
+* AS_prj\ECUUpdateTool\app\src\main\
+* AS_prj\ECUUpdateTool\app\src\main\AndroidManifest.xml
+* AS_prj\ECUUpdateTool\app\src\main\java\
+* AS_prj\ECUUpdateTool\app\src\main\java\com\
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\dbhelper\
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\dbhelper\CANDatabaseHelper.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\dbhelper\GenerateDatabase.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\CallbackBundle.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\Crc.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\DeviceListActivity.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\DisconnectWarningActivity.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\Hex2Bin.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\MainActivity.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\ManufacturerActivity.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\OpenFileDialog.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\Record.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\SecurityAccess.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\Seed2Key.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\ecusoftwareupdatetool\UpdateActivity.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\uds\
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\uds\ForyouUpdateProcess.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\uds\GeelyUpdateProcess.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\uds\ISO14229.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\uds\ISO15765.java
+* AS_prj\ECUUpdateTool\app\src\main\java\com\zfchen\uds\UpdateProcess.java
+* AS_prj\ECUUpdateTool\app\src\main\res\
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\adayo_logo.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\baic.jpg
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\bluetooth.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\car.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\car_tips.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\dfsk.jpg
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\download.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\extend.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\filedialog_file.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\filedialog_folder.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\filedialog_folder_up.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\filedialog_root.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\geely.jpg
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\great_wall.jpg
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\hex.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\ic_launcher.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\tool.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-hdpi\zotye.jpg
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-mdpi\
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-mdpi\ic_launcher.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-xhdpi\
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-xhdpi\ic_launcher.png
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-xxhdpi\
+* AS_prj\ECUUpdateTool\app\src\main\res\drawable-xxhdpi\ic_launcher.png
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\activity_main.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\activity_manufacturer.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\custom_list_item.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\custom_title.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\device_list.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\disconnect_warning.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\filedialogitem.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\layout\update_software.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\menu\
+* AS_prj\ECUUpdateTool\app\src\main\res\menu\main.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\menu\manufacturer.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\values-v11\
+* AS_prj\ECUUpdateTool\app\src\main\res\values-v11\styles.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\values-v14\
+* AS_prj\ECUUpdateTool\app\src\main\res\values-v14\styles.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\values-w820dp\
+* AS_prj\ECUUpdateTool\app\src\main\res\values-w820dp\dimens.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\values\
+* AS_prj\ECUUpdateTool\app\src\main\res\values\dimens.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\values\strings.xml
+* AS_prj\ECUUpdateTool\app\src\main\res\values\styles.xml
+* AS_prj\ECUUpdateTool\build.gradle
+* AS_prj\ECUUpdateTool\gradle\
+* AS_prj\ECUUpdateTool\gradle\wrapper\
+* AS_prj\ECUUpdateTool\gradle\wrapper\gradle-wrapper.jar
+* AS_prj\ECUUpdateTool\gradle\wrapper\gradle-wrapper.properties
+* AS_prj\ECUUpdateTool\gradlew
+* AS_prj\ECUUpdateTool\gradlew.bat
+* AS_prj\ECUUpdateTool\local.properties
+* AS_prj\ECUUpdateTool\settings.gradle
+* ic_launcher-web.png
+* proguard-project.txt
+
+Replaced Jars with Dependencies:
+--------------------------------
+The importer recognized the following .jar files as third party
+libraries and replaced them with Gradle dependencies instead. This has
+the advantage that more explicit version information is known, and the
+libraries can be updated automatically. However, it is possible that
+the .jar file in your project was of an older version than the
+dependency we picked, which could render the project not compileable.
+You can disable the jar replacement in the import wizard and try again:
+
+android-support-v4.jar => com.android.support:support-v4:21.0.3
+
+Moved Files:
+------------
+Android Gradle projects use a different directory structure than ADT
+Eclipse projects. Here's how the projects were restructured:
+
+* AndroidManifest.xml => app\src\main\AndroidManifest.xml
+* res\ => app\src\main\res\
+* src\ => app\src\main\java\
+
+Next Steps:
+-----------
+You can now build the project. The Gradle project needs network
+connectivity to download dependencies.
+
+Bugs:
+-----
+If for some reason your project does not build, and you determine that
+it is due to a bug or limitation of the Eclipse to Gradle importer,
+please file a bug at http://b.android.com with category
+Component-Tools.
+
+(This import summary is for your information only, and can be deleted
+after import once you are satisfied with the results.)

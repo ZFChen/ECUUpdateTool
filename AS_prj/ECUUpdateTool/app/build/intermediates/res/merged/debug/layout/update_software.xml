@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#CCCCFF"
+    android:orientation="vertical"
+    >
+    <TextView 	android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:gravity="center"
+        		android:text="请选择升级文件"
+        		android:id="@+id/data_tips"
+        		android:layout_margin="10dp"
+        		android:textSize="24sp"
+        		android:layout_centerHorizontal="true"
+        />
+    
+    <!-- select calibration file -->
+    <CheckBox   android:layout_below="@id/data_tips"
+				android:id="@+id/Data_switch"
+				android:gravity="center"
+		        android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="标定数据"
+				android:textSize="16sp"
+				android:checked="true"
+		/>
+    <Button 	android:layout_toRightOf="@id/Data_switch"
+        		android:layout_alignTop="@id/Data_switch"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginLeft = "100dp" 
+        		android:text = "选择数据"
+        		android:textSize="16sp"
+        		android:id="@+id/selectDataButton"
+        		android:layout_alignParentRight="true"
+        />
+    <TextView 	android:layout_below="@id/Data_switch"
+        		android:layout_width="fill_parent"
+        		android:layout_height="wrap_content"
+        		android:gravity="center"
+        		android:id="@+id/Data_Input"
+        		android:text="XXX_EED.hex"
+        		android:layout_margin="10dp"
+        />
+    
+    <!-- select application file -->
+    <CheckBox   android:layout_below="@id/Data_Input"
+				android:id="@+id/App_switch"
+				android:gravity="center"
+		        android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="应用文件"
+				android:textSize="16sp"
+				android:checked="true"
+		/>
+    <Button 	android:layout_toRightOf="@id/App_switch"
+        		android:layout_alignTop="@id/App_switch"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginLeft = "100dp" 
+        		android:text = "选择应用"
+        		android:textSize="16sp"
+        		android:id="@+id/selectAppButton"
+        		android:layout_alignParentRight="true"
+        />
+    <TextView 	android:layout_below="@id/App_switch"
+        		android:layout_width="fill_parent"
+        		android:layout_height="wrap_content"
+        		android:gravity="center"
+        		android:id="@+id/App_Input"
+        		android:text="XXX_APP.hex"
+        		android:layout_margin="10dp"
+        />
+    
+    <!-- select driver file -->
+    <CheckBox   android:layout_below="@id/App_Input"
+				android:id="@+id/Driver_switch"
+				android:gravity="center"
+		        android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="驱动文件"
+				android:textSize="16sp"
+				android:checked="true"
+		/>
+    <Button 	android:layout_toRightOf="@id/Driver_switch"
+        		android:layout_alignTop="@id/Driver_switch"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginLeft = "100dp" 
+        		android:text = "选择驱动"
+        		android:textSize="16sp"
+        		android:id="@+id/selectDriverButton"
+        		android:layout_alignParentRight="true"
+        />
+    <TextView 	android:layout_below="@id/Driver_switch"
+        		android:layout_width="fill_parent"
+        		android:layout_height="wrap_content"
+        		android:gravity="center"
+        		android:id="@+id/Driver_Input"
+        		android:text="XXX_DRIVER.hex"
+        		android:layout_margin="10dp"
+        />
+    
+    <Button 	android:layout_below="@id/Driver_Input"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:text = "升级"
+        		android:textSize="18sp"
+        		android:id="@+id/updateSWButton"
+        		android:layout_marginTop = "60dp"
+        		android:layout_centerHorizontal="true"
+        />
+    
+	<ProgressBar 
+				 android:layout_below="@id/updateSWButton"
+				 android:id="@+id/progressBar"
+				 android:layout_width="200dp"
+				 android:layout_height="wrap_content"
+				 style="?android:attr/progressBarStyleHorizontal"
+				 android:max="100"
+				 android:progress="0"
+				 android:secondaryProgress="0"
+				 android:layout_marginTop = "30dp"
+				 android:layout_centerHorizontal="true"
+		/> 
+
+</RelativeLayout>
